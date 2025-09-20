@@ -19,7 +19,7 @@ export const administracion: AppMenuItem = {
         {
           key: PATH_REGISTER_PERSONAL,
           label: 'Crear Personal',
-          requiredRols: [1],
+          requiredRols: [Rol.ADMIN],
         },
       ],
     },

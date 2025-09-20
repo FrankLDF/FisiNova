@@ -6,6 +6,7 @@ import { patient } from '../../features/patient/menu/patient'
 import { filterMenuItemsByRole } from '../../utils/filterMenuByRol'
 import { getSessionInfo } from '../../utils/getSessionInfo'
 import type { AppMenuItem } from '../../utils/constants'
+import { appointment } from '../../features/appointment/menu/appointment'
 
 export const Navbar = () => {
   const navigate = useNavigate()
@@ -17,7 +18,7 @@ export const Navbar = () => {
     navigate(e.key)
   }
 
-  const items: AppMenuItem[] = [administracion, patient]
+  const items: AppMenuItem[] = [administracion, patient, appointment]
   const filteredItems: AppMenuItem[] = filterMenuItemsByRole(
     items as never,
     userRoles

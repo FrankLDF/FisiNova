@@ -1,10 +1,12 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { PATH_INICIAL, PATH_LOGIN, PATH_MAIN, PATH_NOT_FOUND } from './pathts'
-import PublicRoutes from './PublicRoutes'
-import PrivateRoutes from './PrivateRoutes'
-import NotFaundPage from '../layout/NotFaundPage'
-import { Login } from '../features/auth/pages/Login'
-import { PATH_REGISTER_PERSONAL } from '../features/administrator/menu/path'
+import { Navigate, Route, Routes } from "react-router-dom";
+import { PATH_INICIAL, PATH_LOGIN, PATH_MAIN, PATH_NOT_FOUND } from "./pathts";
+import PublicRoutes from "./PublicRoutes";
+import PrivateRoutes from "./PrivateRoutes";
+import NotFaundPage from "../layout/NotFaundPage";
+import { Login } from "../features/auth/pages/Login";
+import { PATH_REGISTER_PERSONAL } from "../features/administrator/menu/path";
+import { ConsultAppointments } from "../features/appointment/pages/ConsultAppointment";
+import { CreateAppointment } from "../features/appointment/pages/CreateAppointment";
 
 const AppRoutes = () => {
   return (
@@ -29,9 +31,25 @@ const AppRoutes = () => {
         path={PATH_REGISTER_PERSONAL}
         element={<PrivateRoutes>Estas registrando un personal</PrivateRoutes>}
       />
+      <Route
+        path="/consult-appointments"
+        element={
+          <PrivateRoutes>
+            <ConsultAppointments />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/create-appointment"
+        element={
+          <PrivateRoutes>
+            <CreateAppointment />
+          </PrivateRoutes>
+        }
+      />
       <Route path={PATH_NOT_FOUND} element={<NotFaundPage />} />
     </Routes>
-  )
-}
+  );
+};
 
-export default AppRoutes
+export default AppRoutes;

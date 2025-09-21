@@ -1,18 +1,21 @@
-import { Card, Row, Col, Select, DatePicker, TimePicker, Form } from "antd";
+import { Card, Row, Col, Select, DatePicker, TimePicker, Form, Grid } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { CustomForm } from "../../../components/form/CustomForm";
 import { CustomFormItem } from "../../../components/form/CustomFormItem";
 import { CustomInput } from "../../../components/input/CustomInput";
 import { CustomButton } from "../../../components/Button/CustomButton";
-import { PatientSelectorField } from "../../../components/form/PatientSelectorField"; // 👈 Campo visual
-import { PatientSelectorModal } from "../../../components/modals/PatientSelectorModal"; // 👈 Modal
+import { PatientSelectorField } from "../../../components/form/PatientSelectorField";
+import { PatientSelectorModal } from "../../../components/modals/PatientSelectorModal";
 import { useCustomMutation } from "../../../hooks/UseCustomMutation";
 import { showNotification } from "../../../utils/showNotification";
 import appointmentService from "../services/appointment";
 import dayjs from "dayjs";
 import { Typography } from "antd";
 import type { Patient } from "../../patient/models/patient";
+import {
+  ArrowLeftOutlined
+} from "@ant-design/icons";
 
 const { Title } = Typography;
 const { TextArea } = CustomInput;
@@ -37,12 +40,13 @@ export const CreateAppointment = () => {
   const [insurances, setInsurances] = useState<Insurance[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [loadingInsurances, setLoadingInsurances] = useState(false);
+  const isSmallDevice = Grid.useBreakpoint()?.xs || false;
 
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [editInsuranceCode, setEditInsuranceCode] = useState(true);
 
-  const startTime = Form.useWatch('start_time', form);
+  const startTime = Form.useWatch("start_time", form);
 
   useEffect(() => {
     loadEmployees();
@@ -187,13 +191,13 @@ export const CreateAppointment = () => {
       <Row gutter={[16, 16]} justify="center">
         <Col xs={24} sm={24} md={24} lg={24} xl={24} xxl={24}>
           <Card
-            title="Crear Nueva Cita"
+            title="Crear Cita"
             extra={
               <CustomButton
                 type="default"
                 onClick={() => navigate("/consult-appointments")}
               >
-                Volver a Consultas
+                {isSmallDevice ? <ArrowLeftOutlined /> : "Volver a Consultas"}
               </CustomButton>
             }
           >
@@ -203,127 +207,142 @@ export const CreateAppointment = () => {
               onFinish={onFinish}
               style={{ width: "100%" }}
             >
-              <div
-                style={{
-                  backgroundColor: "#f8f9fa",
-                  padding: "16px",
-                  borderRadius: "6px",
-                  marginBottom: "24px",
-                  border: "1px solid #e9ecef",
-                }}
-              >
-                <Title level={5} style={{ margin: "0 0 16px 0" }}>
-                  Información del Paciente
-                </Title>
+              <Row gutter={24}>
+                <Col span={24}>
+                  <div
+                    style={{
+                      backgroundColor: "#f8f9fa",
+                      padding: "16px",
+                      borderRadius: "6px",
+                      marginBottom: "24px",
+                      border: "1px solid #e9ecef",
+                      height: "fit-content",
+                    }}
+                  >
+                    <Title level={5} style={{ margin: "0 0 16px 0" }}>
+                      Información del Paciente
+                    </Title>
 
-                <Row gutter={16}>
-                  <Col span={24} style={{ marginBottom: "16px" }}>
-                    <PatientSelectorField
-                      selectedPatient={selectedPatient}
-                      onOpenModal={() => setIsPatientModalOpen(true)}
-                      onClear={() => handlePatientSelect(null)}
-                      placeholder="Buscar y seleccionar paciente..."
-                      allowClear={true}
-                    />
-                  </Col>
-                </Row>
-
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12} md={12} lg={8}>
-                    <CustomFormItem
-                      label="Nombre"
-                      name="guest_firstname"
-                      required
-                    >
-                      <CustomInput
-                        placeholder="Nombre del paciente"
-                        disabled={!!selectedPatient}
-                      />
-                    </CustomFormItem>
-                  </Col>
-
-                  <Col xs={24} sm={12} md={12} lg={8}>
-                    <CustomFormItem
-                      label="Apellido"
-                      name="guest_lastname"
-                      required
-                    >
-                      <CustomInput
-                        placeholder="Apellido del paciente"
-                        disabled={!!selectedPatient}
-                      />
-                    </CustomFormItem>
-                  </Col>
-
-                  <Col xs={24} sm={12} md={12} lg={8}>
-                    <CustomFormItem label="DNI" name="dni">
-                      <CustomInput
-                        placeholder="Número de identificación"
-                        disabled={!!selectedPatient}
-                      />
-                    </CustomFormItem>
-                  </Col>
-                </Row>
-
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12} md={12} lg={8}>
-                    <CustomFormItem label="Teléfono" name="phone" required>
-                      <CustomInput
-                        placeholder="Número de teléfono"
-                        disabled={!!selectedPatient}
-                      />
-                    </CustomFormItem>
-                  </Col>
-
-                  <Col xs={24} sm={12} md={12} lg={8}>
-                    <CustomFormItem label="Pasaporte" name="passport">
-                      <CustomInput
-                        placeholder="Número de pasaporte"
-                        disabled={!!selectedPatient}
-                      />
-                    </CustomFormItem>
-                  </Col>
-                </Row>
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12} md={12} lg={8}>
-                    <CustomFormItem
-                      label="Seguro Médico"
-                      name="insurance_id"
-                      required
-                    >
-                      <Select
-                        placeholder="Seleccionar seguro..."
-                        loading={loadingInsurances}
-                        showSearch
-                        optionFilterProp="children"
-                        onChange={handleInsuranceChange}
-                        notFoundContent={
-                          loadingInsurances
-                            ? "Cargando..."
-                            : "No hay seguros médicos"
-                        }
+                    <Row gutter={[16, 16]}>
+                      <Col
+                        span={24}
+                        style={{ textAlign: isSmallDevice ? "center" : "right", marginBottom: isSmallDevice ? 8 : 0 }}
                       >
-                        {insurances.map((insurance) => (
-                          <Option key={insurance.id} value={insurance.id}>
-                            {insurance.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </CustomFormItem>
-                  </Col>
-                  <Col xs={24} sm={12} md={12} lg={8}>
-                    <CustomFormItem
-                      label="Código de Seguro"
-                      name="insurance_code"
-                    >
-                      <CustomInput
-                        placeholder="Código del seguro médico"
-                        disabled={!!selectedPatient && !editInsuranceCode}
-                      />
-                    </CustomFormItem>
-                  </Col>
-                </Row>
-              </div>
+                        <PatientSelectorField
+                          selectedPatient={selectedPatient}
+                          onOpenModal={() => setIsPatientModalOpen(true)}
+                          onClear={() => handlePatientSelect(null)}
+                          placeholder="Buscar Paciente"
+                          allowClear={true}
+                          height={40}
+                          width={200}
+                          showInfo={false}
+                        />
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} md={12} lg={12}>
+                        <CustomFormItem
+                          label="Nombre"
+                          name="guest_firstname"
+                          required
+                        >
+                          <CustomInput
+                            placeholder="Nombre del paciente"
+                            disabled={!!selectedPatient}
+                          />
+                        </CustomFormItem>
+                      </Col>
+
+                      <Col xs={24} md={12} lg={12}>
+                        <CustomFormItem
+                          label="Apellido"
+                          name="guest_lastname"
+                          required
+                        >
+                          <CustomInput
+                            placeholder="Apellido del paciente"
+                            disabled={!!selectedPatient}
+                          />
+                        </CustomFormItem>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} md={12} lg={12}>
+                        <CustomFormItem label="DNI" name="dni">
+                          <CustomInput
+                            placeholder="Número de identificación"
+                            disabled={!!selectedPatient}
+                          />
+                        </CustomFormItem>
+                      </Col>
+
+                      <Col xs={24} md={12} lg={12}>
+                        <CustomFormItem label="Teléfono" name="phone" required>
+                          <CustomInput
+                            placeholder="Número de teléfono"
+                            disabled={!!selectedPatient}
+                          />
+                        </CustomFormItem>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} md={12} lg={12}>
+                        <CustomFormItem label="Pasaporte" name="passport">
+                          <CustomInput
+                            placeholder="Número de pasaporte"
+                            disabled={!!selectedPatient}
+                          />
+                        </CustomFormItem>
+                      </Col>
+
+                      <Col xs={24} md={12} lg={12}>
+                        <CustomFormItem
+                          label="Seguro Médico"
+                          name="insurance_id"
+                          required
+                        >
+                          <Select
+                            placeholder="Seleccionar seguro..."
+                            loading={loadingInsurances}
+                            showSearch
+                            optionFilterProp="children"
+                            onChange={handleInsuranceChange}
+                            notFoundContent={
+                              loadingInsurances
+                                ? "Cargando..."
+                                : "No hay seguros médicos"
+                            }
+                          >
+                            {insurances.map((insurance) => (
+                              <Option key={insurance.id} value={insurance.id}>
+                                {insurance.name}
+                              </Option>
+                            ))}
+                          </Select>
+                        </CustomFormItem>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} md={12} lg={12}>
+                        <CustomFormItem
+                          label="Código de Seguro"
+                          name="insurance_code"
+                        >
+                          <CustomInput
+                            placeholder="Código del seguro médico"
+                            disabled={!!selectedPatient && !editInsuranceCode}
+                          />
+                        </CustomFormItem>
+                      </Col>
+                    </Row>
+                  </div>
+                </Col>
+              </Row>
 
               <div
                 style={{
@@ -358,7 +377,7 @@ export const CreateAppointment = () => {
                       >
                         {employees.map((employee) => (
                           <Option key={employee.id} value={employee.id}>
-                            {`Dr(a). ${employee.firstname || ""} ${
+                            {`${employee.firstname || ""} ${
                               employee.lastname || ""
                             }`}
                           </Option>
@@ -396,6 +415,9 @@ export const CreateAppointment = () => {
                         style={{ width: "100%" }}
                         placeholder="Seleccionar hora..."
                         format="HH:mm"
+                        onChange={() => {
+                          form.setFieldValue("end_time", undefined);
+                        }}
                       />
                     </CustomFormItem>
                   </Col>
@@ -412,11 +434,11 @@ export const CreateAppointment = () => {
                         },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
-                            const startTime = getFieldValue("start_time");
-                            if (!value || !startTime) {
+                            const startTimeValue = getFieldValue("start_time");
+                            if (!value || !startTimeValue) {
                               return Promise.resolve();
                             }
-                            if (dayjs(value).isAfter(dayjs(startTime))) {
+                            if (dayjs(value).isAfter(dayjs(startTimeValue))) {
                               return Promise.resolve();
                             }
                             return Promise.reject(
@@ -429,9 +451,16 @@ export const CreateAppointment = () => {
                       ]}
                     >
                       <TimePicker
-                        style={{ width: "100%" }}
-                        placeholder="Seleccionar hora..."
-                        format="HH:mm"  
+                        style={{
+                          width: "100%",
+                          opacity: startTime ? 1 : 0.5,
+                        }}
+                        placeholder={
+                          startTime
+                            ? "Hora de finalización..."
+                            : "Primero seleccione hora de inicio"
+                        }
+                        format="HH:mm"
                         disabled={!startTime}
                       />
                     </CustomFormItem>
@@ -454,6 +483,7 @@ export const CreateAppointment = () => {
                 </Row>
               </div>
 
+              {/* Botones de Acción */}
               <Row justify="end" gutter={16} style={{ marginTop: "24px" }}>
                 <Col xs={24} sm={12} md={6} lg={4}>
                   <CustomButton

@@ -9,6 +9,7 @@ import { showNotification } from '../../../utils/showNotification'
 import { LoginShell } from '../components/LoginShell'
 import auth from '../services/auth'
 import { useAuth } from '../../../store/auth/AuthContext'
+import { showHandleError } from '../../../utils/handleError'
 
 export const Login = () => {
   const navigate = useNavigate()
@@ -27,10 +28,7 @@ export const Login = () => {
       }
     },
     onError: (err) => {
-      showNotification({
-        type: 'error',
-        message: `${err.response.message}`,
-      })
+      showHandleError(err)
     },
   })
   return (

@@ -9,11 +9,11 @@ import {
   Tooltip,
 } from 'antd'
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons'
-import { getSessionInfo } from '../../utils/getSessionInfo'
 import { CustomButton } from '../Button/CustomButton'
 import { CustomConfirm } from '../pop-confirm/CustomConfirm'
-import auth from '../../features/auth/services/auth'
 import { useCustomMutation } from '../../hooks/UseCustomMutation'
+import auth from '../../features/auth/services/auth'
+import { useAuth } from '../../store/auth/AuthContext'
 
 const { Text } = Typography
 
@@ -22,11 +22,18 @@ function Header() {
   const screens = useBreakpoint()
   const isMobile = !screens.md
 
-  const user = getSessionInfo()
+  const { user, logout } = useAuth()
   const firstLetter = user?.name?.charAt(0)?.toUpperCase() || 'U'
 
-  const { mutate: logoutnUser, isPending } = useCustomMutation({
+  const { mutate: logoutUser, isPending } = useCustomMutation({
     execute: auth.logout,
+    onSuccess: () => {
+      logout(true)
+    },
+    onError: (err) => {
+      console.error('Error en logout:', err)
+      logout(true)
+    },
   })
 
   const dropdownItems: MenuProps['items'] = [
@@ -41,7 +48,7 @@ function Header() {
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: <span onClick={() => logoutnUser()}>Cerrar sesión</span>,
+      label: <span onClick={() => logoutUser()}>Cerrar sesión</span>,
     },
   ]
 
@@ -84,7 +91,7 @@ function Header() {
               <Tooltip title="Cerrar sesión">
                 <CustomConfirm
                   title="¿Estás seguro que deseas cerrar sesión?"
-                  onConfirm={() => logoutnUser()}
+                  onConfirm={() => logoutUser()}
                 >
                   <CustomButton
                     loading={isPending}

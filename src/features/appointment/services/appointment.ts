@@ -1,4 +1,5 @@
 import serverCore from "../../../interceptors/axiosInstance";
+import { buildQueryParams } from "../../../utils/urlParams";
 import type {
   CreateAppointmentRequest,
   AppointmentFilters,
@@ -6,15 +7,8 @@ import type {
 
 class AppointmentService {
   async getAppointments(filters: AppointmentFilters = {}) {
-    const params = new URLSearchParams();
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        params.append(key, value.toString());
-      }
-    });
-
-    const res = await serverCore.get(`/appointments?${params.toString()}`);
+    const params = buildQueryParams(filters);
+    const res = await serverCore.get(`/appointments?${params}`);
     return res.data;
   }
 
@@ -49,11 +43,6 @@ class AppointmentService {
     const res = await serverCore.get(`/employees?${params.toString()}`);
     return res.data;
   }
-  async getPatients(search?: string) {
-    const params = search ? `?search=${search}` : "";
-    const res = await serverCore.get(`/patients${params}`);
-    return res.data;
-  }
 
   async checkAvailability(
     employeeId: number,
@@ -74,6 +63,16 @@ class AppointmentService {
     const res = await serverCore.get(
       `/appointments/employee/${employeeId}/date/${date}`
     );
+    return res.data;
+  }
+
+  async getAvaiableInsuranceCompanies() {
+    const defaultFilter = {
+      status: "active",
+    };
+    const params = buildQueryParams(defaultFilter);
+
+    const res = await serverCore.get(`/insurances?${params}`);
     return res.data;
   }
 }

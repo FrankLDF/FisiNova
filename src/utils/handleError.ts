@@ -1,6 +1,6 @@
 import { showNotification } from './showNotification'
 
-export const showHandleError = (err) => {
+export const showHandleError = (err: any) => {
   const apiErrorMessage = err.response?.message
   const axiosErrorMessage = err.message
 

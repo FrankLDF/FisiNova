@@ -26,6 +26,7 @@ import appointmentService from "../services/appointment";
 import type { Appointment, AppointmentFilters } from "../models/appointment";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
+import { showHandleError } from "../../../utils/handleError";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -33,8 +34,18 @@ const { Option } = Select;
 export const ConsultAppointments = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<AppointmentFilters>({
-    paginate: 20,
+    paginate: 15,
   });
+
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(
+    null
+  );
+  const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
+    undefined
+  );
+  const [selectedActive, setSelectedActive] = useState<string | undefined>(
+    undefined
+  );
 
   const {
     data: appointmentsData,
@@ -55,10 +66,7 @@ export const ConsultAppointments = () => {
       refetch();
     },
     onError: (err) => {
-      showNotification({
-        type: "error",
-        message: err.response?.error?.message || "Error al eliminar la cita",
-      });
+      showHandleError(err);
     },
   });
 
@@ -157,7 +165,7 @@ export const ConsultAppointments = () => {
     {
       title: "Acciones",
       key: "actions",
-      width: 120,
+      fixed: "right",
       render: (_, record) => (
         <Space>
           <Tooltip title="Ver detalles">
@@ -165,6 +173,7 @@ export const ConsultAppointments = () => {
               type="text"
               icon={<EyeOutlined />}
               onClick={() => navigate(`/appointments/${record.id}`)}
+              title="Ver detalles"
             />
           </Tooltip>
 
@@ -173,6 +182,7 @@ export const ConsultAppointments = () => {
               type="text"
               icon={<EditOutlined />}
               onClick={() => navigate(`/appointments/${record.id}/edit`)}
+              title="Editar"
             />
           </Tooltip>
 
@@ -181,7 +191,12 @@ export const ConsultAppointments = () => {
             onConfirm={() => deleteAppointment(record.id!)}
           >
             <Tooltip title="Eliminar">
-              <CustomButton type="text" danger icon={<DeleteOutlined />} />
+              <CustomButton
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                title="Eliminar"
+              />
             </Tooltip>
           </CustomConfirm>
         </Space>
@@ -198,9 +213,40 @@ export const ConsultAppointments = () => {
 
   const clearFilters = () => {
     setFilters({ paginate: 15 });
+    setDateRange(null);
+    setSelectedStatus(undefined);
+    setSelectedActive(undefined);
   };
 
-  // Manejo defensivo de datos de paginación
+  const handleDateRangeChange = (
+    dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
+  ) => {
+    const validDates =
+      dates && dates[0] && dates[1]
+        ? ([dates[0], dates[1]] as [dayjs.Dayjs, dayjs.Dayjs])
+        : null;
+
+    setDateRange(validDates);
+
+    if (dates) {
+      handleFilterChange("start_date", dates[0]?.format("YYYY-MM-DD"));
+      handleFilterChange("end_date", dates[1]?.format("YYYY-MM-DD"));
+    } else {
+      handleFilterChange("start_date", undefined);
+      handleFilterChange("end_date", undefined);
+    }
+  };
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+    handleFilterChange("status", value);
+  };
+
+  const handleActiveChange = (value: string) => {
+    setSelectedActive(value);
+    handleFilterChange("active", value);
+  };
+
   const tableData =
     appointmentsData?.data?.data || appointmentsData?.data || [];
   const pagination = {
@@ -218,75 +264,61 @@ export const ConsultAppointments = () => {
   return (
     <div>
       <Row gutter={[16, 16]}>
-        {/* Filtros */}
         <Col span={24}>
           <Card title="Filtros de Búsqueda">
-            <Row gutter={16} align="middle">
-              <Col span={6}>
+            <Row gutter={[16, 16]} align="middle">
+              <Col xs={24} sm={12} md={8} lg={6}>
                 <label>Rango de fechas:</label>
                 <RangePicker
                   style={{ width: "100%" }}
-                  onChange={(dates) => {
-                    if (dates) {
-                      handleFilterChange(
-                        "start_date",
-                        dates[0]?.format("YYYY-MM-DD")
-                      );
-                      handleFilterChange(
-                        "end_date",
-                        dates[1]?.format("YYYY-MM-DD")
-                      );
-                    } else {
-                      handleFilterChange("start_date", undefined);
-                      handleFilterChange("end_date", undefined);
-                    }
-                  }}
+                  value={dateRange}
+                  onChange={handleDateRangeChange}
                 />
               </Col>
 
-              <Col span={4}>
+              <Col xs={24} sm={12} md={6} lg={4}>
                 <label>Estado:</label>
                 <Select
                   style={{ width: "100%" }}
                   placeholder="Seleccionar estado"
                   allowClear
-                  onChange={(value) => handleFilterChange("status", value)}
+                  value={selectedStatus}
+                  onChange={handleStatusChange}
                 >
-                  <Option value="scheduled">Programada</Option>
-                  <Option value="confirmed">Confirmada</Option>
-                  <Option value="in_progress">En Progreso</Option>
-                  <Option value="completed">Completada</Option>
-                  <Option value="cancelled">Cancelada</Option>
-                  <Option value="no_show">No Asistió</Option>
+                  <Option value="programada">Programada</Option>
+                  <Option value="completada">Completada</Option>
+                  <Option value="cancelada">Cancelada</Option>
                 </Select>
               </Col>
 
-              <Col span={4}>
+              <Col xs={24} sm={12} md={6} lg={4}>
                 <label>Activo:</label>
                 <Select
                   style={{ width: "100%" }}
                   placeholder="Estado"
                   allowClear
-                  onChange={(value) => handleFilterChange("active", value)}
+                  value={selectedActive}
+                  onChange={handleActiveChange}
                 >
                   <Option value="true">Activo</Option>
                   <Option value="false">Inactivo</Option>
                 </Select>
               </Col>
 
-              <Col span={6}>
-                <Space>
+              <Col xs={24} sm={12} md={6} lg={6}>
+                <Space direction="vertical" style={{ width: "100%" }}>
                   <CustomButton type="default" onClick={clearFilters}>
                     Limpiar Filtros
                   </CustomButton>
                 </Space>
               </Col>
 
-              <Col span={4}>
+              <Col xs={24} sm={12} md={8} lg={4}>
                 <CustomButton
                   type="primary"
                   icon={<PlusOutlined />}
                   onClick={() => navigate("/create-appointment")}
+                  style={{ width: "100%" }}
                 >
                   Nueva Cita
                 </CustomButton>
@@ -295,7 +327,6 @@ export const ConsultAppointments = () => {
           </Card>
         </Col>
 
-        {/* Tabla */}
         <Col span={24}>
           <Card title="Lista de Citas">
             <Table

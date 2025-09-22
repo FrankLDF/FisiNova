@@ -1,4 +1,13 @@
-import { Card, Row, Col, Select, DatePicker, TimePicker, Form, Grid } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Select,
+  DatePicker,
+  TimePicker,
+  Form,
+  Grid,
+} from "antd";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { CustomForm } from "../../../components/form/CustomForm";
@@ -13,9 +22,8 @@ import appointmentService from "../services/appointment";
 import dayjs from "dayjs";
 import { Typography } from "antd";
 import type { Patient } from "../../patient/models/patient";
-import {
-  ArrowLeftOutlined
-} from "@ant-design/icons";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import { showHandleError } from "../../../utils/handleError";
 
 const { Title } = Typography;
 const { TextArea } = CustomInput;
@@ -102,10 +110,7 @@ export const CreateAppointment = () => {
     },
     onError: (err) => {
       console.error("Error creando cita:", err);
-      showNotification({
-        type: "error",
-        message: err.response?.error?.message || "Error al crear la cita",
-      });
+      showHandleError(err);
     },
   });
 
@@ -226,7 +231,10 @@ export const CreateAppointment = () => {
                     <Row gutter={[16, 16]}>
                       <Col
                         span={24}
-                        style={{ textAlign: isSmallDevice ? "center" : "right", marginBottom: isSmallDevice ? 8 : 0 }}
+                        style={{
+                          textAlign: isSmallDevice ? "center" : "right",
+                          marginBottom: isSmallDevice ? 8 : 0,
+                        }}
                       >
                         <PatientSelectorField
                           selectedPatient={selectedPatient}

@@ -81,6 +81,22 @@ export const ConsultAppointments = () => {
     return status ? statusColors[status] || "default" : "default";
   };
 
+  const handleViewAppointment = (appointmentId: number) => {
+    navigate(`/appointments/${appointmentId}`);
+  };
+
+  const handleEditAppointment = (appointmentId: number) => {
+    navigate(`/appointments/${appointmentId}/edit`);
+  };
+
+  const handleCreateAppointment = () => {
+    navigate("/create-appointment");
+  };
+
+  const handleDeleteAppointment = (appointmentId: number) => {
+    deleteAppointment(appointmentId);
+  };
+
   const columns: ColumnsType<Appointment> = [
     {
       title: "Fecha",
@@ -172,7 +188,7 @@ export const ConsultAppointments = () => {
             <CustomButton
               type="text"
               icon={<EyeOutlined />}
-              onClick={() => navigate(`/appointments/${record.id}`)}
+              onClick={() => handleViewAppointment(record.id!)}
               title="Ver detalles"
             />
           </Tooltip>
@@ -181,18 +197,22 @@ export const ConsultAppointments = () => {
             <CustomButton
               type="text"
               icon={<EditOutlined />}
-              onClick={() => navigate(`/appointments/${record.id}/edit`)}
+              onClick={() => handleEditAppointment(record.id!)}
               title="Editar"
             />
           </Tooltip>
 
           <CustomConfirm
             title="¿Estás seguro de eliminar esta cita?"
-            onConfirm={() => deleteAppointment(record.id!)}
+            description="Esta acción no se puede deshacer"
+            onConfirm={() => handleDeleteAppointment(record.id!)}
+            okText="Sí, eliminar"
+            cancelText="Cancelar"
           >
             <Tooltip title="Eliminar">
               <CustomButton
                 type="text"
+                size="small"
                 danger
                 icon={<DeleteOutlined />}
                 title="Eliminar"
@@ -317,7 +337,7 @@ export const ConsultAppointments = () => {
                 <CustomButton
                   type="primary"
                   icon={<PlusOutlined />}
-                  onClick={() => navigate("/create-appointment")}
+                  onClick={() => handleCreateAppointment()}
                   style={{ width: "100%" }}
                 >
                   Nueva Cita

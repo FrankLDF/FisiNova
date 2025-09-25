@@ -1,33 +1,33 @@
-import {
-  Card,
-  Row,
-  Col,
-  Select,
-  DatePicker,
-  TimePicker,
-  Form,
-  Grid,
-} from "antd";
-import { useNavigate } from "react-router-dom";
+import { Card, Row, Col, Form, Grid, Skeleton } from "antd";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CustomForm } from "../../../components/form/CustomForm";
 import { CustomFormItem } from "../../../components/form/CustomFormItem";
 import { CustomInput } from "../../../components/input/CustomInput";
+import { CustomSelect, Option } from "../../../components/form/CustomSelect";
+import {
+  CustomDatePicker,
+  CustomTimePicker,
+} from "../../../components/form/CustomDatePicker";
 import { CustomButton } from "../../../components/Button/CustomButton";
 import { PatientSelectorField } from "../../../components/form/PatientSelectorField";
 import { PatientSelectorModal } from "../../../components/modals/PatientSelectorModal";
 import { useCustomMutation } from "../../../hooks/UseCustomMutation";
 import { showNotification } from "../../../utils/showNotification";
 import appointmentService from "../services/appointment";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { Typography } from "antd";
 import type { Patient } from "../../patient/models/patient";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  EditOutlined,
+  SaveOutlined,
+  EyeOutlined,
+} from "@ant-design/icons";
 import { showHandleError } from "../../../utils/handleError";
 
 const { Title } = Typography;
-const { TextArea } = CustomInput;
-const { Option } = Select;
 
 interface Employee {
   id: number;
@@ -41,8 +41,11 @@ interface Insurance {
   provider_code?: string;
 }
 
-export const CreateAppointment = () => {
+type FormMode = "create" | "edit" | "view";
+
+export const AppointmentForm = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [form] = Form.useForm();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [insurances, setInsurances] = useState<Insurance[]>([]);
@@ -53,19 +56,81 @@ export const CreateAppointment = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [editInsuranceCode, setEditInsuranceCode] = useState(true);
+  const [mode, setMode] = useState<FormMode>("create");
+  const [isEditing, setIsEditing] = useState(false);
 
   const startTime = Form.useWatch("start_time", form);
+
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+
+    if (id) {
+      if (currentPath.includes("/edit") || currentPath.includes("/form")) {
+        setMode("edit");
+        setIsEditing(true);
+      } else {
+        setMode("view");
+        setIsEditing(false);
+      }
+    } else {
+      setMode("create");
+      setIsEditing(true);
+    }
+  }, [id]);
+
+  const { data: appointmentData, isLoading: loadingAppointment } = useQuery({
+    queryKey: ["appointment", id],
+    queryFn: () => appointmentService.getAppointment(Number(id)),
+    enabled: !!id,
+  });
 
   useEffect(() => {
     loadEmployees();
     loadInsurances();
   }, []);
 
+  useEffect(() => {
+    if (appointmentData?.data && id) {
+      const appointment = appointmentData.data;
+
+      if (appointment.patient) {
+        setSelectedPatient(appointment.patient);
+      }
+
+      form.setFieldsValue({
+        employee_id: appointment.employee_id,
+        appointment_date: appointment.appointment_date
+          ? dayjs(appointment.appointment_date)
+          : null,
+        start_time: appointment.start_time
+          ? dayjs(appointment.start_time, "HH:mm")
+          : null,
+        end_time: appointment.end_time
+          ? dayjs(appointment.end_time, "HH:mm")
+          : null,
+        status: appointment.status || "programada",
+        notes: appointment.notes,
+        guest_firstname:
+          appointment.guest_firstname || appointment.patient?.firstname,
+        guest_lastname:
+          appointment.guest_lastname || appointment.patient?.lastname,
+        dni: appointment.dni || appointment.patient?.dni,
+        phone: appointment.phone || appointment.patient?.phone,
+        passport: appointment.passport || appointment.patient?.passport,
+        insurance_code:
+          appointment.insurance_code || appointment.patient?.insurance_code,
+        insurance_id:
+          appointment.insurance_id || appointment.patient?.insurance?.id,
+      });
+
+      setEditInsuranceCode(!appointment.patient?.insurance_code);
+    }
+  }, [appointmentData, form, id]);
+
   const loadEmployees = async () => {
     try {
       setLoadingEmployees(true);
       const response = await appointmentService.getEmployees();
-
       const employeeData = response?.data?.data || response?.data || [];
       setEmployees(Array.isArray(employeeData) ? employeeData : []);
     } catch (error) {
@@ -84,7 +149,6 @@ export const CreateAppointment = () => {
     try {
       setLoadingInsurances(true);
       const response = await appointmentService.getAvaiableInsuranceCompanies();
-
       const insuranceData = response?.data?.data || response?.data || [];
       setInsurances(Array.isArray(insuranceData) ? insuranceData : []);
     } catch (error) {
@@ -99,20 +163,36 @@ export const CreateAppointment = () => {
     }
   };
 
-  const { mutate: createAppointment, isPending } = useCustomMutation({
-    execute: appointmentService.createAppointment,
-    onSuccess: () => {
-      showNotification({
-        type: "success",
-        message: "Cita creada exitosamente",
-      });
-      navigate("/consult-appointments");
-    },
-    onError: (err) => {
-      console.error("Error creando cita:", err);
-      showHandleError(err);
-    },
-  });
+  const { mutate: createAppointment, isPending: isCreating } =
+    useCustomMutation({
+      execute: appointmentService.createAppointment,
+      onSuccess: () => {
+        showNotification({
+          type: "success",
+          message: "Cita creada exitosamente",
+        });
+        navigate("/consult-appointments");
+      },
+      onError: (err) => {
+        showHandleError(err);
+      },
+    });
+
+  const { mutate: updateAppointment, isPending: isUpdating } =
+    useCustomMutation({
+      execute: ({ id, data }: { id: number; data: any }) =>
+        appointmentService.updateAppointment(id, data),
+      onSuccess: () => {
+        showNotification({
+          type: "success",
+          message: "Cita actualizada exitosamente",
+        });
+        navigate("/consult-appointments");
+      },
+      onError: (err) => {
+        showHandleError(err);
+      },
+    });
 
   const handlePatientSelect = (patient: Patient | null) => {
     setSelectedPatient(patient);
@@ -167,6 +247,7 @@ export const CreateAppointment = () => {
         });
         return;
       }
+
       const appointmentData = {
         ...values,
         patient_id: selectedPatient?.id || null,
@@ -182,7 +263,11 @@ export const CreateAppointment = () => {
         }),
       };
 
-      createAppointment(appointmentData);
+      if (mode === "create") {
+        createAppointment(appointmentData);
+      } else if (mode === "edit" && id) {
+        updateAppointment({ id: Number(id), data: appointmentData });
+      }
     } catch (error) {
       showNotification({
         type: "error",
@@ -191,19 +276,78 @@ export const CreateAppointment = () => {
     }
   };
 
+  const toggleEditMode = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const getTitle = () => {
+    switch (mode) {
+      case "create":
+        return "Crear Cita";
+      case "edit":
+        return "Editar Cita";
+      case "view":
+        return "Detalles de la Cita";
+      default:
+        return "Cita";
+    }
+  };
+
+  const getSubmitButtonText = () => {
+    if (mode === "create") return "Crear Cita";
+    if (mode === "edit") return "Actualizar Cita";
+    return "";
+  };
+
+  const isPending = isCreating || isUpdating;
+  const isViewMode = mode === "view" && !isEditing;
+
+  if (loadingAppointment && id) {
+    return (
+      <div style={{ padding: "0 16px" }}>
+        <Card>
+          <Skeleton active />
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "0 16px" }}>
       <Row gutter={[16, 16]} justify="center">
         <Col xs={24} sm={24} md={24} lg={24} xl={24} xxl={24}>
           <Card
-            title="Crear Cita"
+            title={getTitle()}
             extra={
-              <CustomButton
-                type="default"
-                onClick={() => navigate("/consult-appointments")}
-              >
-                {isSmallDevice ? <ArrowLeftOutlined /> : "Volver a Consultas"}
-              </CustomButton>
+              <Row gutter={8}>
+                {mode === "view" && (
+                  <Col>
+                    <CustomButton
+                      type={isEditing ? "default" : "primary"}
+                      icon={isEditing ? <EyeOutlined /> : <EditOutlined />}
+                      onClick={toggleEditMode}
+                    >
+                      {isSmallDevice
+                        ? null
+                        : isEditing
+                        ? "Cancelar Edición"
+                        : "Editar"}
+                    </CustomButton>
+                  </Col>
+                )}
+                <Col>
+                  <CustomButton
+                    type="default"
+                    onClick={() => navigate("/consult-appointments")}
+                  >
+                    {isSmallDevice ? (
+                      <ArrowLeftOutlined />
+                    ) : (
+                      "Volver a Consultas"
+                    )}
+                  </CustomButton>
+                </Col>
+              </Row>
             }
           >
             <CustomForm
@@ -245,6 +389,7 @@ export const CreateAppointment = () => {
                           height={40}
                           width={200}
                           showInfo={false}
+                          disabled={isViewMode}
                         />
                       </Col>
                     </Row>
@@ -258,7 +403,7 @@ export const CreateAppointment = () => {
                         >
                           <CustomInput
                             placeholder="Nombre del paciente"
-                            disabled={!!selectedPatient}
+                            readOnly={!!selectedPatient || isViewMode}
                           />
                         </CustomFormItem>
                       </Col>
@@ -271,7 +416,7 @@ export const CreateAppointment = () => {
                         >
                           <CustomInput
                             placeholder="Apellido del paciente"
-                            disabled={!!selectedPatient}
+                            readOnly={!!selectedPatient || isViewMode}
                           />
                         </CustomFormItem>
                       </Col>
@@ -282,7 +427,7 @@ export const CreateAppointment = () => {
                         <CustomFormItem label="DNI" name="dni">
                           <CustomInput
                             placeholder="Número de identificación"
-                            disabled={!!selectedPatient}
+                            readOnly={!!selectedPatient || isViewMode}
                           />
                         </CustomFormItem>
                       </Col>
@@ -291,7 +436,7 @@ export const CreateAppointment = () => {
                         <CustomFormItem label="Teléfono" name="phone" required>
                           <CustomInput
                             placeholder="Número de teléfono"
-                            disabled={!!selectedPatient}
+                            readOnly={!!selectedPatient || isViewMode}
                           />
                         </CustomFormItem>
                       </Col>
@@ -302,7 +447,7 @@ export const CreateAppointment = () => {
                         <CustomFormItem label="Pasaporte" name="passport">
                           <CustomInput
                             placeholder="Número de pasaporte"
-                            disabled={!!selectedPatient}
+                            readOnly={!!selectedPatient || isViewMode}
                           />
                         </CustomFormItem>
                       </Col>
@@ -313,12 +458,13 @@ export const CreateAppointment = () => {
                           name="insurance_id"
                           required
                         >
-                          <Select
+                          <CustomSelect
                             placeholder="Seleccionar seguro..."
                             loading={loadingInsurances}
                             showSearch
                             optionFilterProp="children"
                             onChange={handleInsuranceChange}
+                            readOnly={isViewMode}
                             notFoundContent={
                               loadingInsurances
                                 ? "Cargando..."
@@ -330,7 +476,7 @@ export const CreateAppointment = () => {
                                 {insurance.name}
                               </Option>
                             ))}
-                          </Select>
+                          </CustomSelect>
                         </CustomFormItem>
                       </Col>
                     </Row>
@@ -343,7 +489,10 @@ export const CreateAppointment = () => {
                         >
                           <CustomInput
                             placeholder="Código del seguro médico"
-                            disabled={!!selectedPatient && !editInsuranceCode}
+                            readOnly={
+                              (!!selectedPatient && !editInsuranceCode) ||
+                              isViewMode
+                            }
                           />
                         </CustomFormItem>
                       </Col>
@@ -372,11 +521,12 @@ export const CreateAppointment = () => {
                       name="employee_id"
                       required
                     >
-                      <Select
+                      <CustomSelect
                         placeholder="Seleccionar especialista..."
                         loading={loadingEmployees}
                         showSearch
                         optionFilterProp="children"
+                        readOnly={isViewMode}
                         notFoundContent={
                           loadingEmployees
                             ? "Cargando..."
@@ -390,7 +540,7 @@ export const CreateAppointment = () => {
                             }`}
                           </Option>
                         ))}
-                      </Select>
+                      </CustomSelect>
                     </CustomFormItem>
                   </Col>
 
@@ -400,12 +550,13 @@ export const CreateAppointment = () => {
                       name="appointment_date"
                       required
                     >
-                      <DatePicker
+                      <CustomDatePicker
                         style={{ width: "100%" }}
                         placeholder="dd/mm/aaaa"
                         format="DD/MM/YYYY"
-                        disabledDate={(current) =>
-                          current && current < dayjs().startOf("day")
+                        readOnly={isViewMode}
+                        disabledDate={(current: Dayjs | null) =>
+                          current ? current < dayjs().startOf("day") : false
                         }
                       />
                     </CustomFormItem>
@@ -419,12 +570,15 @@ export const CreateAppointment = () => {
                       name="start_time"
                       required
                     >
-                      <TimePicker
+                      <CustomTimePicker
                         style={{ width: "100%" }}
                         placeholder="Seleccionar hora..."
                         format="HH:mm"
+                        readOnly={isViewMode}
                         onChange={() => {
-                          form.setFieldValue("end_time", undefined);
+                          if (!isViewMode) {
+                            form.setFieldValue("end_time", undefined);
+                          }
                         }}
                       />
                     </CustomFormItem>
@@ -442,6 +596,8 @@ export const CreateAppointment = () => {
                         },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
+                            if (isViewMode) return Promise.resolve();
+
                             const startTimeValue = getFieldValue("start_time");
                             if (!value || !startTimeValue) {
                               return Promise.resolve();
@@ -458,10 +614,10 @@ export const CreateAppointment = () => {
                         }),
                       ]}
                     >
-                      <TimePicker
+                      <CustomTimePicker
                         style={{
                           width: "100%",
-                          opacity: startTime ? 1 : 0.5,
+                          opacity: startTime && !isViewMode ? 1 : 0.5,
                         }}
                         placeholder={
                           startTime
@@ -469,18 +625,36 @@ export const CreateAppointment = () => {
                             : "Primero seleccione hora de inicio"
                         }
                         format="HH:mm"
-                        disabled={!startTime}
+                        readOnly={!startTime || isViewMode}
                       />
                     </CustomFormItem>
                   </Col>
                 </Row>
 
+                {mode !== "create" && (
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} md={12} lg={12}>
+                      <CustomFormItem label="Estado" name="status">
+                        <CustomSelect
+                          placeholder="Estado de la cita"
+                          readOnly={isViewMode}
+                        >
+                          <Option value="programada">Programada</Option>
+                          <Option value="completada">Completada</Option>
+                          <Option value="cancelada">Cancelada</Option>
+                        </CustomSelect>
+                      </CustomFormItem>
+                    </Col>
+                  </Row>
+                )}
+
                 <Row gutter={[16, 16]}>
                   <Col span={24}>
                     <CustomFormItem label="Notas" name="notes">
-                      <TextArea
+                      <CustomInput.TextArea
                         rows={4}
                         placeholder="Notas adicionales o comentarios sobre la cita..."
+                        readOnly={isViewMode}
                         style={{
                           resize: "vertical",
                           minHeight: "100px",
@@ -491,28 +665,30 @@ export const CreateAppointment = () => {
                 </Row>
               </div>
 
-              {/* Botones de Acción */}
-              <Row justify="end" gutter={16} style={{ marginTop: "24px" }}>
-                <Col xs={24} sm={12} md={6} lg={4}>
-                  <CustomButton
-                    type="default"
-                    onClick={() => navigate("/consult-appointments")}
-                    style={{ width: "100%", minHeight: "40px" }}
-                  >
-                    Cancelar
-                  </CustomButton>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6}>
-                  <CustomButton
-                    type="primary"
-                    htmlType="submit"
-                    loading={isPending}
-                    style={{ width: "100%", minHeight: "40px" }}
-                  >
-                    Crear Cita
-                  </CustomButton>
-                </Col>
-              </Row>
+              {(mode === "create" || isEditing) && (
+                <Row justify="end" gutter={16} style={{ marginTop: "24px" }}>
+                  <Col xs={24} sm={12} md={6} lg={4}>
+                    <CustomButton
+                      type="default"
+                      onClick={() => navigate("/consult-appointments")}
+                      style={{ width: "100%", minHeight: "40px" }}
+                    >
+                      Cancelar
+                    </CustomButton>
+                  </Col>
+                  <Col xs={24} sm={12} md={8} lg={6}>
+                    <CustomButton
+                      type="primary"
+                      htmlType="submit"
+                      loading={isPending}
+                      icon={mode === "create" ? undefined : <SaveOutlined />}
+                      style={{ width: "100%", minHeight: "40px" }}
+                    >
+                      {getSubmitButtonText()}
+                    </CustomButton>
+                  </Col>
+                </Row>
+              )}
             </CustomForm>
           </Card>
         </Col>

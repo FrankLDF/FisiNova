@@ -6,7 +6,7 @@ import NotFaundPage from "../layout/NotFaundPage";
 import { Login } from "../features/auth/pages/Login";
 import { PATH_REGISTER_PERSONAL } from "../features/administrator/menu/path";
 import { ConsultAppointments } from "../features/appointment/pages/ConsultAppointment";
-import { CreateAppointment } from "../features/appointment/pages/CreateAppointment";
+import { AppointmentForm } from "../features/appointment/pages/AppointmentForm";
 
 const AppRoutes = () => {
   return (
@@ -31,6 +31,7 @@ const AppRoutes = () => {
         path={PATH_REGISTER_PERSONAL}
         element={<PrivateRoutes>Estas registrando un personal</PrivateRoutes>}
       />
+
       <Route
         path="/consult-appointments"
         element={
@@ -39,14 +40,34 @@ const AppRoutes = () => {
           </PrivateRoutes>
         }
       />
+
       <Route
         path="/create-appointment"
         element={
           <PrivateRoutes>
-            <CreateAppointment />
+            <AppointmentForm />
           </PrivateRoutes>
         }
       />
+
+      <Route
+        path="/appointments/:id"
+        element={
+          <PrivateRoutes>
+            <AppointmentForm />
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/appointments/:id/edit"
+        element={
+          <PrivateRoutes>
+            <AppointmentForm />
+          </PrivateRoutes>
+        }
+      />
+
       <Route path={PATH_NOT_FOUND} element={<NotFaundPage />} />
     </Routes>
   );

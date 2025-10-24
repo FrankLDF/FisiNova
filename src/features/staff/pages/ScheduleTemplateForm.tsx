@@ -159,16 +159,6 @@ export const ScheduleTemplateForm = () => {
           })
           return
         }
-
-        if (day.end_time.isBefore(day.start_time)) {
-          showNotification({
-            type: 'error',
-            message: `Día ${
-              i + 1
-            }: La hora de fin debe ser posterior a la hora de inicio`,
-          })
-          return
-        }
       }
 
       const templateData = {

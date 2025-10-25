@@ -31,17 +31,17 @@ export const staffMenu: AppMenuItem = {
       children: [
         {
           key: PATH_CONSULT_SCHEDULES,
-          label: 'Plantillas de Horarios',
+          label: 'Consultar Horario',
           requiredRols: [Rol.ADMIN],
         },
         {
           key: PATH_CREATE_SCHEDULE_TEMPLATE,
-          label: 'Crear Plantilla',
+          label: 'Crear Horario',
           requiredRols: [Rol.ADMIN],
         },
         {
           key: PATH_ASSIGN_SCHEDULE,
-          label: 'Asignar Horarios',
+          label: 'Asignar Horario',
           requiredRols: [Rol.ADMIN],
         },
       ],

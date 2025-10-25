@@ -11,7 +11,7 @@ import {
 
 export const staffMenu: AppMenuItem = {
   key: 'staff-management',
-  label: 'Gestión de Personal',
+  label: 'Personal',
   requiredRols: [Rol.ADMIN],
   children: [
     {

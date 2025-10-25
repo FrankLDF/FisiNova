@@ -1,5 +1,3 @@
-// src/features/staff/menu/path.ts
-
 export const PATH_CONSULT_STAFF = '/consult-staff'
 export const PATH_CREATE_STAFF = '/create-staff'
 export const PATH_STAFF_DETAIL = '/staff/:id'

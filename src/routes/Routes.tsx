@@ -11,6 +11,11 @@ import { StaffForm } from '../features/staff/pages/StaffForm'
 import { ConsultStaff } from '../features/staff/pages/ConsultStaff'
 import { ScheduleTemplateForm } from '../features/staff/pages/ScheduleTemplateForm'
 import { ConsultScheduleTemplates } from '../features/staff/pages/ConsultScheduleTemplates'
+import {
+  PATH_ASSIGN_SCHEDULE,
+  PATH_STAFF_SCHEDULES,
+} from '../features/staff/menu/path'
+import { AssignSchedule, ConsultStaffSchedules } from '../features/staff/pages'
 
 const AppRoutes = () => {
   return (
@@ -126,6 +131,22 @@ const AppRoutes = () => {
         element={
           <PrivateRoutes>
             <ScheduleTemplateForm />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path={PATH_ASSIGN_SCHEDULE}
+        element={
+          <PrivateRoutes>
+            <AssignSchedule />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path={PATH_STAFF_SCHEDULES}
+        element={
+          <PrivateRoutes>
+            <ConsultStaffSchedules />
           </PrivateRoutes>
         }
       />

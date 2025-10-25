@@ -7,6 +7,7 @@ import {
   PATH_CONSULT_SCHEDULES,
   PATH_CREATE_SCHEDULE_TEMPLATE,
   PATH_ASSIGN_SCHEDULE,
+  PATH_STAFF_SCHEDULES,
 } from './path'
 
 export const staffMenu: AppMenuItem = {
@@ -37,6 +38,11 @@ export const staffMenu: AppMenuItem = {
         {
           key: PATH_CREATE_SCHEDULE_TEMPLATE,
           label: 'Crear Horario',
+          requiredRols: [Rol.ADMIN],
+        },
+        {
+          key: PATH_STAFF_SCHEDULES,
+          label: 'Horarios Asignados',
           requiredRols: [Rol.ADMIN],
         },
         {

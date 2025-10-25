@@ -1,9 +1,6 @@
-// src/features/staff/pages/AssignSchedule.tsx
-
 import { Card, Row, Col, Form, Steps, Space, Typography, Divider } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { CustomForm } from '../../../components/form/CustomForm'
 import { CustomFormItem } from '../../../components/form/CustomFormItem'
 import { CustomSelect, Option } from '../../../components/form/CustomSelect'
@@ -12,11 +9,7 @@ import { CustomButton } from '../../../components/Button/CustomButton'
 import { useCustomMutation } from '../../../hooks/UseCustomMutation'
 import { showNotification } from '../../../utils/showNotification'
 import staffService from '../services/staff'
-import {
-  ArrowLeftOutlined,
-  SaveOutlined,
-  CheckCircleOutlined,
-} from '@ant-design/icons'
+import { ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import { showHandleError } from '../../../utils/handleError'
 import type {
   Staff,
@@ -25,7 +18,6 @@ import type {
   Cubicle,
 } from '../models/staff'
 import { DAY_OF_WEEK_MAP, STATUS_OPTIONS } from '../models/staff'
-import dayjs, { Dayjs } from 'dayjs'
 import { CustomInput } from '../../../components/input/CustomInput'
 
 const { Title, Text } = Typography
@@ -131,6 +123,7 @@ export const AssignSchedule = () => {
   const handleStaffChange = (staffId: number) => {
     const staff = staffList.find((s) => s.id === staffId)
     setSelectedStaff(staff || null)
+    form.setFieldValue('staff_id', staffId) // <-- Actualiza el valor en el formulario
   }
 
   const handleTemplateChange = (templateId: number) => {
@@ -207,14 +200,16 @@ export const AssignSchedule = () => {
     form
       .validateFields()
       .then(() => {
-        if (current === 0 && !selectedStaff) {
+        const staffId = form.getFieldValue('staff_id')
+        const scheduleDayId = form.getFieldValue('schedule_day_id')
+        if (current === 0 && !staffId) {
           showNotification({
             type: 'warning',
             message: 'Debe seleccionar un personal',
           })
           return
         }
-        if (current === 1 && !selectedScheduleDay) {
+        if (current === 1 && !scheduleDayId) {
           showNotification({
             type: 'warning',
             message: 'Debe seleccionar un día de horario',
@@ -238,7 +233,7 @@ export const AssignSchedule = () => {
   return (
     <div style={{ padding: '0 16px' }}>
       <Row gutter={[16, 16]} justify="center">
-        <Col xs={24} sm={24} md={22} lg={20} xl={18}>
+        <Col xs={24}>
           <Card
             title="Asignar Horario al Personal"
             extra={
@@ -341,6 +336,11 @@ export const AssignSchedule = () => {
                     Paso 2: Seleccionar Horario
                   </Title>
 
+                  {/* Campos ocultos del paso anterior */}
+                  <CustomFormItem name="staff_id" hidden>
+                    <CustomSelect />
+                  </CustomFormItem>
+
                   <Row gutter={[16, 16]}>
                     <Col xs={24} md={12}>
                       <CustomFormItem
@@ -434,6 +434,17 @@ export const AssignSchedule = () => {
                   <Title level={5} style={{ margin: '0 0 16px 0' }}>
                     Paso 3: Configuración de la Asignación
                   </Title>
+
+                  {/* Campos ocultos de los pasos anteriores */}
+                  <CustomFormItem name="staff_id" hidden>
+                    <CustomSelect />
+                  </CustomFormItem>
+                  <CustomFormItem name="template_id" hidden>
+                    <CustomSelect />
+                  </CustomFormItem>
+                  <CustomFormItem name="schedule_day_id" hidden>
+                    <CustomSelect />
+                  </CustomFormItem>
 
                   <Row gutter={[16, 16]}>
                     <Col xs={24} md={12}>

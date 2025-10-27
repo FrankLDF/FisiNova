@@ -1,25 +1,24 @@
-import React from 'react';
-import { Input, type InputProps } from 'antd';
-import type { TextAreaProps } from 'antd/es/input';
-import './customInput.css'; // Importar estilos globales
+import React from 'react'
+import { Input, type InputProps } from 'antd'
+import type { TextAreaProps } from 'antd/es/input'
 
 interface CustomInputProps extends InputProps {
-  readOnly?: boolean;
+  readOnly?: boolean
 }
 
 interface CustomTextAreaProps extends TextAreaProps {
-  readOnly?: boolean;
+  readOnly?: boolean
 }
 
 interface CustomPasswordProps extends InputProps {
-  readOnly?: boolean;
+  readOnly?: boolean
 }
 
 const useReadOnlyClass = (readOnly: boolean, existingClassName?: string) => {
-  return readOnly 
+  return readOnly
     ? `${existingClassName || ''} custom-readonly`.trim()
-    : existingClassName;
-};
+    : existingClassName
+}
 
 const BaseCustomInput: React.FC<CustomInputProps> = ({
   readOnly = false,
@@ -27,16 +26,16 @@ const BaseCustomInput: React.FC<CustomInputProps> = ({
   disabled,
   ...props
 }) => {
-  const finalClassName = useReadOnlyClass(readOnly, className);
-  
+  const finalClassName = useReadOnlyClass(readOnly, className)
+
   return (
     <Input
       {...props}
       className={finalClassName}
       disabled={readOnly || disabled}
     />
-  );
-};
+  )
+}
 
 const CustomTextArea: React.FC<CustomTextAreaProps> = ({
   readOnly = false,
@@ -44,16 +43,16 @@ const CustomTextArea: React.FC<CustomTextAreaProps> = ({
   disabled,
   ...props
 }) => {
-  const finalClassName = useReadOnlyClass(readOnly, className);
-  
+  const finalClassName = useReadOnlyClass(readOnly, className)
+
   return (
     <Input.TextArea
       {...props}
       className={finalClassName}
       disabled={readOnly || disabled}
     />
-  );
-};
+  )
+}
 
 const CustomPassword: React.FC<CustomPasswordProps> = ({
   readOnly = false,
@@ -61,20 +60,20 @@ const CustomPassword: React.FC<CustomPasswordProps> = ({
   disabled,
   ...props
 }) => {
-  const finalClassName = useReadOnlyClass(readOnly, className);
-  
+  const finalClassName = useReadOnlyClass(readOnly, className)
+
   return (
     <Input.Password
       {...props}
       className={finalClassName}
       disabled={readOnly || disabled}
     />
-  );
-};
+  )
+}
 
 export const CustomInput = Object.assign(BaseCustomInput, {
   TextArea: CustomTextArea,
   Password: CustomPassword,
   Search: Input.Search,
   Group: Input.Group,
-});
+})

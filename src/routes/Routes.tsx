@@ -1,12 +1,21 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import { PATH_INICIAL, PATH_LOGIN, PATH_MAIN, PATH_NOT_FOUND } from "./pathts";
-import PublicRoutes from "./PublicRoutes";
-import PrivateRoutes from "./PrivateRoutes";
-import NotFaundPage from "../layout/NotFaundPage";
-import { Login } from "../features/auth/pages/Login";
-import { PATH_REGISTER_PERSONAL } from "../features/administrator/menu/path";
-import { ConsultAppointments } from "../features/appointment/pages/ConsultAppointment";
-import { AppointmentForm } from "../features/appointment/pages/AppointmentForm";
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { PATH_INICIAL, PATH_LOGIN, PATH_MAIN, PATH_NOT_FOUND } from './pathts'
+import PublicRoutes from './PublicRoutes'
+import PrivateRoutes from './PrivateRoutes'
+import NotFaundPage from '../layout/NotFaundPage'
+import { Login } from '../features/auth/pages/Login'
+import { PATH_REGISTER_PERSONAL } from '../features/administrator/menu/path'
+import { ConsultAppointments } from '../features/appointment/pages/ConsultAppointment'
+import { AppointmentForm } from '../features/appointment/pages/AppointmentForm'
+import { StaffForm } from '../features/staff/pages/StaffForm'
+import { ConsultStaff } from '../features/staff/pages/ConsultStaff'
+import { ScheduleTemplateForm } from '../features/staff/pages/ScheduleTemplateForm'
+import { ConsultScheduleTemplates } from '../features/staff/pages/ConsultScheduleTemplates'
+import {
+  PATH_ASSIGN_SCHEDULE,
+  PATH_STAFF_SCHEDULES,
+} from '../features/staff/menu/path'
+import { AssignSchedule, ConsultStaffSchedules } from '../features/staff/pages'
 
 const AppRoutes = () => {
   return (
@@ -68,9 +77,83 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/consult-staff"
+        element={
+          <PrivateRoutes>
+            <ConsultStaff />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/create-staff"
+        element={
+          <PrivateRoutes>
+            <StaffForm />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/staff/:id"
+        element={
+          <PrivateRoutes>
+            <StaffForm />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/staff/:id/edit"
+        element={
+          <PrivateRoutes>
+            <StaffForm />
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/consult-schedules"
+        element={
+          <PrivateRoutes>
+            <ConsultScheduleTemplates />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/create-schedule-template"
+        element={
+          <PrivateRoutes>
+            <ScheduleTemplateForm />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path="/schedule-templates/:id/edit"
+        element={
+          <PrivateRoutes>
+            <ScheduleTemplateForm />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path={PATH_ASSIGN_SCHEDULE}
+        element={
+          <PrivateRoutes>
+            <AssignSchedule />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path={PATH_STAFF_SCHEDULES}
+        element={
+          <PrivateRoutes>
+            <ConsultStaffSchedules />
+          </PrivateRoutes>
+        }
+      />
+
       <Route path={PATH_NOT_FOUND} element={<NotFaundPage />} />
     </Routes>
-  );
-};
+  )
+}
 
-export default AppRoutes;
+export default AppRoutes

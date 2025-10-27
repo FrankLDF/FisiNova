@@ -7,6 +7,11 @@ class patientService {
     const res = await serverCore.get(`/patients?${params}`);
     return res.data;
   }
+
+  async createPatient(data: any) {
+    const res = await serverCore.post("/patients", data);
+    return res.data;
+  }
 }
 
 export default new patientService();

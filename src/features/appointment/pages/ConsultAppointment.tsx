@@ -14,6 +14,7 @@ import {
   DeleteOutlined,
   PlusOutlined,
   EyeOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -23,12 +24,15 @@ import { CustomConfirm } from "../../../components/pop-confirm/CustomConfirm";
 import { useCustomMutation } from "../../../hooks/UseCustomMutation";
 import { showNotification } from "../../../utils/showNotification";
 import appointmentService from "../services/appointment";
+import authorizationService from "../../authorization/services/authorization";
 import type { Appointment, AppointmentFilters } from "../models/appointment";
+import type { ConfirmAppointmentRequest } from "../../authorization/models/authorization";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import { showHandleError } from "../../../utils/handleError";
 import { useAuth } from "../../../store/auth/AuthContext";
 import { isAdmin, isSecretary } from "../../../utils/authFunctions";
+import { ConfirmAppointmentModal } from "../components/ConfirmAppointmentModal";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -39,6 +43,10 @@ export const ConsultAppointments = () => {
     paginate: 15,
   });
   const { user } = useAuth();
+
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
 
   if (user && !(isAdmin(user.rols) || isSecretary(user.rols))) {
     filters.employee_id = user.id;
@@ -63,6 +71,13 @@ export const ConsultAppointments = () => {
     queryFn: () => appointmentService.getAppointments(filters),
   });
 
+  const { data: insurancesData } = useQuery({
+    queryKey: ["insurances-active"],
+    queryFn: () => appointmentService.getAvaiableInsuranceCompanies(),
+  });
+
+  const insurances = insurancesData?.data?.data || insurancesData?.data || [];
+
   const { mutate: deleteAppointment } = useCustomMutation({
     execute: appointmentService.deleteAppointment,
     onSuccess: () => {
@@ -77,9 +92,33 @@ export const ConsultAppointments = () => {
     },
   });
 
+  const { mutate: confirmAppointment, isPending: isConfirming } =
+    useCustomMutation({
+      execute: ({
+        id,
+        data,
+      }: {
+        id: number;
+        data: ConfirmAppointmentRequest;
+      }) => authorizationService.confirmAppointment(id, data),
+      onSuccess: () => {
+        showNotification({
+          type: "success",
+          message: "Cita confirmada exitosamente",
+        });
+        setConfirmModalOpen(false);
+        setSelectedAppointment(null);
+        refetch();
+      },
+      onError: (err) => {
+        showHandleError(err);
+      },
+    });
+
   const statusColors: Record<string, string> = {
     programada: "blue",
-    completada: "green",
+    confirmada: "green",
+    completada: "success",
     cancelada: "error",
     inactiva: "warning",
   };
@@ -102,6 +141,20 @@ export const ConsultAppointments = () => {
 
   const handleDeleteAppointment = (appointmentId: number) => {
     deleteAppointment(appointmentId);
+  };
+
+  const handleOpenConfirmModal = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setConfirmModalOpen(true);
+  };
+
+  const handleConfirmAppointment = (data: ConfirmAppointmentRequest) => {
+    if (selectedAppointment?.id) {
+      confirmAppointment({
+        id: selectedAppointment.id,
+        data,
+      });
+    }
   };
 
   const columns: ColumnsType<Appointment> = [
@@ -170,20 +223,23 @@ export const ConsultAppointments = () => {
       ),
     },
     {
-      title: "Notas",
-      dataIndex: "notes",
-      key: "notes",
-      ellipsis: true,
-      render: (notes: string) =>
-        notes ? (
-          <Tooltip title={notes}>
-            <span>
-              {notes.length > 30 ? notes.substring(0, 30) + "..." : notes}
-            </span>
-          </Tooltip>
-        ) : (
-          "-"
-        ),
+      title: "Tipo Pago",
+      dataIndex: "payment_type",
+      key: "payment_type",
+      render: (paymentType: string) => {
+        if (!paymentType) return "-";
+        return (
+          <Tag color={paymentType === "insurance" ? "blue" : "orange"}>
+            {paymentType === "insurance" ? "Seguro" : "Particular"}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Autorización",
+      dataIndex: "authorization_number",
+      key: "authorization_number",
+      render: (authNumber: string) => authNumber || "-",
     },
     {
       title: "Acciones",
@@ -191,6 +247,19 @@ export const ConsultAppointments = () => {
       fixed: "right",
       render: (_, record) => (
         <Space>
+          {/* Botón de Confirmación */}
+          {user && (isAdmin(user.rols) || isSecretary(user.rols)) && (
+            <Tooltip title="Confirmar Entrada">
+              <CustomButton
+                type="text"
+                icon={<CheckCircleOutlined />}
+                onClick={() => handleOpenConfirmModal(record)}
+                title="Confirmar Entrada"
+                disabled={record.status !== "programada"}
+              />
+            </Tooltip>
+          )}
+
           <Tooltip title="Ver detalles">
             <CustomButton
               type="text"
@@ -325,6 +394,7 @@ export const ConsultAppointments = () => {
                   onChange={handleStatusChange}
                 >
                   <Option value="programada">Programada</Option>
+                  <Option value="confirmada">Confirmada</Option>
                   <Option value="completada">Completada</Option>
                   <Option value="cancelada">Cancelada</Option>
                 </Select>
@@ -376,11 +446,24 @@ export const ConsultAppointments = () => {
               loading={isLoading}
               rowKey="id"
               pagination={pagination}
-              scroll={{ x: 1000 }}
+              scroll={{ x: 1500 }}
             />
           </Card>
         </Col>
       </Row>
+
+      {/* Modal de Confirmación */}
+      <ConfirmAppointmentModal
+        open={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setSelectedAppointment(null);
+        }}
+        onConfirm={handleConfirmAppointment}
+        appointment={selectedAppointment}
+        insurances={insurances}
+        loading={isConfirming}
+      />
     </div>
   );
 };

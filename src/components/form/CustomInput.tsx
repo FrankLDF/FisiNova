@@ -1,7 +1,6 @@
 import React from 'react';
 import { Input, type InputProps } from 'antd';
 import type { TextAreaProps } from 'antd/es/input';
-import './customInput.css'; // Importar estilos globales
 
 interface CustomInputProps extends InputProps {
   readOnly?: boolean;

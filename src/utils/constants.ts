@@ -6,6 +6,7 @@ export const Rol = {
   ADMIN: 1,      // admin
   MEDIC: 2,      // medic
   THERAPIST: 3,  // therapist
+  SECRETARY: 4,  // secretary
 }
 
 export type AppMenuItem = ItemType & {

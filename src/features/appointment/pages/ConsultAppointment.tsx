@@ -27,6 +27,8 @@ import type { Appointment, AppointmentFilters } from "../models/appointment";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import { showHandleError } from "../../../utils/handleError";
+import { useAuth } from "../../../store/auth/AuthContext";
+import { isAdmin, isSecretary } from "../../../utils/authFunctions";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -36,6 +38,11 @@ export const ConsultAppointments = () => {
   const [filters, setFilters] = useState<AppointmentFilters>({
     paginate: 15,
   });
+  const { user } = useAuth();
+
+  if (user && !(isAdmin(user.rols) || isSecretary(user.rols))) {
+    filters.employee_id = user.id;
+  }
 
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(
     null
@@ -193,32 +200,44 @@ export const ConsultAppointments = () => {
             />
           </Tooltip>
 
-          <Tooltip title="Editar">
-            <CustomButton
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEditAppointment(record.id!)}
-              title="Editar"
-            />
-          </Tooltip>
-
-          <CustomConfirm
-            title="¿Estás seguro de eliminar esta cita?"
-            description="Esta acción no se puede deshacer"
-            onConfirm={() => handleDeleteAppointment(record.id!)}
-            okText="Sí, eliminar"
-            cancelText="Cancelar"
-          >
-            <Tooltip title="Eliminar">
+          {user && (isAdmin(user.rols) || isSecretary(user.rols)) && (
+            <Tooltip title="Editar">
               <CustomButton
                 type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                title="Eliminar"
+                icon={<EditOutlined />}
+                onClick={() => handleEditAppointment(record.id!)}
+                title="Editar"
+                disabled={
+                  record.status === "completada" ||
+                  record.status === "cancelada"
+                }
               />
             </Tooltip>
-          </CustomConfirm>
+          )}
+
+          {user && (isAdmin(user.rols) || isSecretary(user.rols)) && (
+            <CustomConfirm
+              title="¿Estás seguro de eliminar esta cita?"
+              description="Esta acción no se puede deshacer"
+              onConfirm={() => handleDeleteAppointment(record.id!)}
+              okText="Sí, eliminar"
+              cancelText="Cancelar"
+            >
+              <Tooltip title="Eliminar">
+                <CustomButton
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  title="Eliminar"
+                  disabled={
+                    record.status === "completada" ||
+                    record.status === "cancelada"
+                  }
+                />
+              </Tooltip>
+            </CustomConfirm>
+          )}
         </Space>
       ),
     },
@@ -333,16 +352,18 @@ export const ConsultAppointments = () => {
                 </Space>
               </Col>
 
-              <Col xs={24} sm={12} md={8} lg={4}>
-                <CustomButton
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => handleCreateAppointment()}
-                  style={{ width: "100%" }}
-                >
-                  Nueva Cita
-                </CustomButton>
-              </Col>
+              {user && (isAdmin(user.rols) || isSecretary(user.rols)) && (
+                <Col xs={24} sm={12} md={8} lg={4}>
+                  <CustomButton
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => handleCreateAppointment()}
+                    style={{ width: "100%" }}
+                  >
+                    Nueva Cita
+                  </CustomButton>
+                </Col>
+              )}
             </Row>
           </Card>
         </Col>

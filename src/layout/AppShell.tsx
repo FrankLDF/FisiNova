@@ -91,7 +91,9 @@ export const AppShell = ({
               padding: 24,
               background: '#f5f5f5',
               minHeight: 'calc(100vh - 64px)',
+              maxHeight: 'calc(100vh - 64px)',
               transition: 'margin-left 0.2s',
+              overflow: 'auto',
             }}
           >
             {children}

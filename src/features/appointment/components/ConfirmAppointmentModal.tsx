@@ -18,6 +18,7 @@ import {
   SafetyOutlined,
   DollarOutlined,
   CalendarOutlined,
+  FileProtectOutlined,
 } from "@ant-design/icons";
 import { CustomInput } from "../../../components/form/CustomInput";
 import { CustomFormItem } from "../../../components/form/CustomFormItem";
@@ -32,6 +33,8 @@ import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
+type PaymentType = "insurance" | "private" | "workplace_risk";
+
 interface ConfirmAppointmentModalProps {
   open: boolean;
   onClose: () => void;
@@ -45,16 +48,22 @@ export const ConfirmAppointmentModal: React.FC<
   ConfirmAppointmentModalProps
 > = ({ open, onClose, onConfirm, appointment, insurances, loading }) => {
   const [form] = Form.useForm();
-  const [paymentType, setPaymentType] = useState<"insurance" | "private">(
-    "insurance"
-  );
+  const [paymentType, setPaymentType] = useState<PaymentType>("insurance");
   const [showPatientSelector, setShowPatientSelector] = useState(false);
   const [showQuickRegister, setShowQuickRegister] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
+  // Determinar si la cita es consulta o terapia
+  const isTherapy = appointment?.type === "therapy";
+  const isConsultation = appointment?.type === "consultation";
+
+  // Determinar si requiere autorización previa
+  // SOLO terapia + seguro requiere autorización previa
+  const requiresAuthorization = isTherapy && paymentType === "insurance";
+
   useEffect(() => {
     if (appointment && open) {
-      // Si la cita tiene paciente, usarlo
+      // Configurar paciente
       if (appointment.patient) {
         setSelectedPatient(appointment.patient as Patient);
       } else {
@@ -62,23 +71,37 @@ export const ConfirmAppointmentModal: React.FC<
       }
 
       // Configurar valores iniciales
+      const initialPaymentType = appointment.payment_type || "insurance";
       form.setFieldsValue({
-        payment_type: appointment.payment_type || "insurance",
+        payment_type: initialPaymentType,
         insurance_id: appointment.insurance_id,
+        case_number: appointment.case_number,
       });
-      setPaymentType(appointment.payment_type || "insurance");
+      setPaymentType(initialPaymentType as PaymentType);
     }
   }, [appointment, open, form]);
 
   const handlePaymentTypeChange = (e: any) => {
-    const value = e.target.value;
+    const value = e.target.value as PaymentType;
     setPaymentType(value);
 
+    // Limpiar campos según el tipo de pago
     if (value === "private") {
       form.setFieldsValue({
         authorization_number: undefined,
         insurance_id: undefined,
         authorization_date: undefined,
+        case_number: undefined,
+      });
+    } else if (value === "workplace_risk") {
+      form.setFieldsValue({
+        authorization_number: undefined,
+        insurance_id: undefined,
+        authorization_date: undefined,
+      });
+    } else if (value === "insurance") {
+      form.setFieldsValue({
+        case_number: undefined,
       });
     }
   };
@@ -100,18 +123,29 @@ export const ConfirmAppointmentModal: React.FC<
 
   const handleSubmit = (values: any) => {
     const data: ConfirmAppointmentRequest = {
+      patient_id: selectedPatient?.id,
       payment_type: values.payment_type,
       notes: values.notes,
     };
 
+    // Solo incluir datos de seguro si es por seguro
     if (values.payment_type === "insurance") {
-      data.authorization_number = values.authorization_number;
       data.insurance_id = values.insurance_id;
-      if (values.authorization_date) {
-        data.authorization_date = dayjs(values.authorization_date).format(
-          "YYYY-MM-DD"
-        );
+      
+      // Solo incluir autorización si es TERAPIA por seguro
+      if (isTherapy) {
+        data.authorization_number = values.authorization_number;
+        if (values.authorization_date) {
+          data.authorization_date = dayjs(values.authorization_date).format(
+            "YYYY-MM-DD"
+          );
+        }
       }
+    }
+
+    // Solo incluir case_number si es riesgo laboral
+    if (values.payment_type === "workplace_risk") {
+      data.case_number = values.case_number;
     }
 
     onConfirm(data);
@@ -134,7 +168,7 @@ export const ConfirmAppointmentModal: React.FC<
         title={
           <Space>
             <CheckCircleOutlined style={{ color: "#52c41a" }} />
-            <span>Confirmar Entrada</span>
+            <span>Confirmar Entrada - {isTherapy ? "Terapia" : "Consulta"}</span>
           </Space>
         }
         open={open}
@@ -149,7 +183,7 @@ export const ConfirmAppointmentModal: React.FC<
           onFinish={handleSubmit}
           initialValues={{
             payment_type: "insurance",
-            authorization_date: dayjs()
+            authorization_date: dayjs(),
           }}
         >
           {/* Información de la Cita */}
@@ -160,11 +194,19 @@ export const ConfirmAppointmentModal: React.FC<
               </Title>
               <Row gutter={16}>
                 <Col span={12}>
+                  <Text type="secondary">Tipo:</Text>{" "}
+                  <Text strong style={{ color: isTherapy ? "#1890ff" : "#52c41a" }}>
+                    {isTherapy ? "TERAPIA" : "CONSULTA"}
+                  </Text>
+                </Col>
+                <Col span={12}>
                   <Text type="secondary">Fecha:</Text>{" "}
                   <Text strong>
                     {dayjs(appointment.appointment_date).format("DD/MM/YYYY")}
                   </Text>
                 </Col>
+              </Row>
+              <Row gutter={16}>
                 <Col span={12}>
                   <Text type="secondary">Hora:</Text>{" "}
                   <Text strong>
@@ -172,9 +214,7 @@ export const ConfirmAppointmentModal: React.FC<
                     {dayjs(appointment.end_time, "HH:mm").format("HH:mm")}
                   </Text>
                 </Col>
-              </Row>
-              <Row>
-                <Col span={24}>
+                <Col span={12}>
                   <Text type="secondary">Profesional:</Text>{" "}
                   <Text strong>
                     {appointment.employee
@@ -279,11 +319,17 @@ export const ConfirmAppointmentModal: React.FC<
                     <span>Particular (Sin Seguro)</span>
                   </Space>
                 </Radio>
+                <Radio value="workplace_risk">
+                  <Space>
+                    <FileProtectOutlined />
+                    <span>Riesgo Laboral (IDOPPRIL)</span>
+                  </Space>
+                </Radio>
               </Space>
             </Radio.Group>
           </CustomFormItem>
 
-          {/* Campos de Autorización (solo si es con seguro) */}
+          {/* Campos de Seguro */}
           {paymentType === "insurance" && (
             <Card
               size="small"
@@ -294,11 +340,11 @@ export const ConfirmAppointmentModal: React.FC<
               }}
             >
               <Title level={5} style={{ marginTop: 0 }}>
-                <SafetyOutlined /> Datos de Autorización
+                <SafetyOutlined /> Datos de Seguro
               </Title>
 
               <Row gutter={16}>
-                <Col span={12}>
+                <Col span={24}>
                   <CustomFormItem
                     label="Compañía de Seguro"
                     name="insurance_id"
@@ -317,32 +363,99 @@ export const ConfirmAppointmentModal: React.FC<
                     </CustomSelect>
                   </CustomFormItem>
                 </Col>
-
-                <Col span={12}>
-                  <CustomFormItem
-                    label="Número de Autorización"
-                    name="authorization_number"
-                    required
-                  >
-                    <CustomInput placeholder="Ej: AUTH-2025-001" />
-                  </CustomFormItem>
-                </Col>
               </Row>
 
+              {/* Campos de Autorización - SOLO para TERAPIA + SEGURO */}
+              {requiresAuthorization && (
+                <>
+                  <Alert
+                    message="Autorización Requerida"
+                    description="Las terapias por seguro requieren autorización previa"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <CustomFormItem
+                        label="Número de Autorización"
+                        name="authorization_number"
+                        required
+                      >
+                        <CustomInput placeholder="Ej: AUTH-2025-001" />
+                      </CustomFormItem>
+                    </Col>
+
+                    <Col span={12}>
+                      <CustomFormItem
+                        label="Fecha de Autorización"
+                        name="authorization_date"
+                      >
+                        <DatePicker
+                          style={{ width: "100%" }}
+                          format="DD/MM/YYYY"
+                          placeholder="Seleccionar fecha"
+                          disabledDate={(current) =>
+                            current && current < dayjs().startOf("day")
+                          }
+                        />
+                      </CustomFormItem>
+                    </Col>
+                  </Row>
+                </>
+              )}
+
+              {/* Nota informativa para CONSULTA + SEGURO */}
+              {isConsultation && (
+                <Alert
+                  message="Las consultas por seguro no requieren autorización previa"
+                  type="success"
+                  showIcon
+                  style={{ marginTop: 8 }}
+                />
+              )}
+            </Card>
+          )}
+
+          {/* Campos de Riesgo Laboral */}
+          {paymentType === "workplace_risk" && (
+            <Card
+              size="small"
+              style={{
+                backgroundColor: "#fff7e6",
+                borderColor: "#ffd591",
+                marginBottom: 16,
+              }}
+            >
+              <Title level={5} style={{ marginTop: 0 }}>
+                <FileProtectOutlined /> Riesgo Laboral (IDOPPRIL)
+              </Title>
+
+              <Alert
+                message={
+                  isConsultation
+                    ? "Autorización Posterior"
+                    : "Número de Caso Requerido"
+                }
+                description={
+                  isConsultation
+                    ? "Para consultas de riesgo laboral, el paciente debe ir a IDOPPRIL después de la consulta para autorización"
+                    : "Para terapias de riesgo laboral, registre el número de caso"
+                }
+                type="warning"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+
               <Row gutter={16}>
-                <Col span={12}>
+                <Col span={24}>
                   <CustomFormItem
-                    label="Fecha de Autorización"
-                    name="authorization_date"
+                    label="Número de Caso"
+                    name="case_number"
+                    required
                   >
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      format="DD/MM/YYYY"
-                      placeholder="Seleccionar fecha"
-                      disabledDate={(current) =>
-                        current && current < dayjs().startOf("day")
-                      }
-                    />
+                    <CustomInput placeholder="Ej: CASO-2025-001" />
                   </CustomFormItem>
                 </Col>
               </Row>

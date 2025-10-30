@@ -14,10 +14,15 @@ export default tseslint.config([
       tseslint.configs.recommended,
       reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
+      'prettier',
     ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+    },
+    rules: {
+      semi: ['error', 'never'],
+      'prettier/prettier': ['error', { semi: false }],
     },
   },
 ])

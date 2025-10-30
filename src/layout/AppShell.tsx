@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { CustomButton } from '../components/Button/CustomButton'
 import { myPrimaryColor } from '../utils/constants'
+import { ChangePasswordModal } from '../features/users/components/ChangePasswordModal'
+import { usePasswordResetCheck } from '../features/users/hooks/usePasswordResetCheck'
 
 const { Header, Sider, Content } = Layout
 const { useBreakpoint } = Grid
@@ -23,6 +25,8 @@ export const AppShell = ({
   const isMobile = !screens.md
 
   const [isNavCollapsed, setIsNavCollapsed] = useState(false)
+  const { showPasswordResetModal, closePasswordResetModal } =
+    usePasswordResetCheck()
 
   useEffect(() => {
     setIsNavCollapsed(isMobile)
@@ -100,6 +104,13 @@ export const AppShell = ({
           </Content>
         </Layout>
       </Layout>
+
+      {/* Modal de cambio de contraseña obligatorio */}
+      <ChangePasswordModal
+        open={showPasswordResetModal}
+        onClose={closePasswordResetModal}
+        forced={true}
+      />
     </Layout>
   )
 }

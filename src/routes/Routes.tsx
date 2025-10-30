@@ -1,25 +1,28 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import { PATH_ACCESS_DENIED, PATH_INICIAL, PATH_LOGIN, PATH_MAIN, PATH_NOT_FOUND } from "./pathts";
-import PublicRoutes from "./PublicRoutes";
-import PrivateRoutes from "./PrivateRoutes";
-import { NotFoundPage } from "../layout/NotFoundPage";
-import { AccessDenied } from "../layout/AccesDenied";
-import { Login } from "../features/auth/pages/Login";
-import { ConsultAppointments } from "../features/appointment/pages/ConsultAppointment";
-import { AppointmentForm } from "../features/appointment/pages/AppointmentForm";
-import { PATH_CONSULT_APPOINTMENTS } from "../features/appointment/menu/path";
-import { PATH_REGISTER_PERSONAL } from "../features/administrator/menu/path";
-import { RoleProtectedRoute } from "./RoleProtectedRoutes";
-import { Rol } from "../utils/constants";
+import { Navigate, Route, Routes } from 'react-router-dom'
+import {
+  PATH_ACCESS_DENIED,
+  PATH_INICIAL,
+  PATH_LOGIN,
+  PATH_MAIN,
+  PATH_NOT_FOUND,
+} from './pathts'
+import PublicRoutes from './PublicRoutes'
+import PrivateRoutes from './PrivateRoutes'
+import { NotFoundPage } from '../layout/NotFoundPage'
+import { AccessDenied } from '../layout/AccesDenied'
+import { Login } from '../features/auth/pages/Login'
+import { ConsultAppointments } from '../features/appointment/pages/ConsultAppointment'
+import { AppointmentForm } from '../features/appointment/pages/AppointmentForm'
+import { PATH_CONSULT_APPOINTMENTS } from '../features/appointment/menu/path'
+import { RoleProtectedRoute } from './RoleProtectedRoutes'
+import { Rol } from '../utils/constants'
 import { StaffForm } from '../features/staff/pages/StaffForm'
 import { ConsultStaff } from '../features/staff/pages/ConsultStaff'
 import { ScheduleTemplateForm } from '../features/staff/pages/ScheduleTemplateForm'
 import { ConsultScheduleTemplates } from '../features/staff/pages/ConsultScheduleTemplates'
-import {
-  PATH_ASSIGN_SCHEDULE,
-  PATH_STAFF_SCHEDULES,
-} from '../features/staff/menu/path'
 import { AssignSchedule, ConsultStaffSchedules } from '../features/staff/pages'
+import { ConsultUsers } from '../features/users/pages/ConsultUsers'
+import { UserForm } from '../features/users/pages/UserForm'
 
 const AppRoutes = () => {
   return (
@@ -46,13 +49,8 @@ const AppRoutes = () => {
         element={<PrivateRoutes>Holaa desde aqui</PrivateRoutes>}
       />
 
-      {/* ✅ Ruta de acceso denegado */}
+      {/* Acceso denegado */}
       <Route path={PATH_ACCESS_DENIED} element={<AccessDenied />} />
-
-      <Route
-        path={PATH_REGISTER_PERSONAL}
-        element={<PrivateRoutes>Estas registrando un personal</PrivateRoutes>}
-      />
 
       {/* Rutas de citas */}
       <Route
@@ -106,8 +104,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* 404 */}
-      <Route path={PATH_NOT_FOUND} element={<NotFoundPage />} />
+      {/* Rutas de personal */}
       <Route
         path="/consult-staff"
         element={
@@ -141,6 +138,7 @@ const AppRoutes = () => {
         }
       />
 
+      {/* Rutas de horarios */}
       <Route
         path="/consult-schedules"
         element={
@@ -166,7 +164,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path={PATH_ASSIGN_SCHEDULE}
+        path="/assign-schedule"
         element={
           <PrivateRoutes>
             <AssignSchedule />
@@ -174,13 +172,61 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path={PATH_STAFF_SCHEDULES}
+        path="/staff-schedules"
         element={
           <PrivateRoutes>
             <ConsultStaffSchedules />
           </PrivateRoutes>
         }
       />
+
+      {/* ========== RUTAS DE USUARIOS ========== */}
+      <Route
+        path="/consult-users"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <ConsultUsers />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/create-user"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <UserForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/users/:id"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <UserForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/users/:id/edit"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <UserForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      {/* 404 */}
+      <Route path={PATH_NOT_FOUND} element={<NotFoundPage />} />
     </Routes>
   )
 }

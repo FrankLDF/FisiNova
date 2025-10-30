@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react'
 import {
   Modal,
   Form,
@@ -11,7 +11,7 @@ import {
   DatePicker,
   Row,
   Col,
-} from "antd";
+} from 'antd'
 import {
   CheckCircleOutlined,
   UserOutlined,
@@ -19,156 +19,166 @@ import {
   DollarOutlined,
   CalendarOutlined,
   FileProtectOutlined,
-} from "@ant-design/icons";
-import { CustomInput } from "../../../components/form/CustomInput";
-import { CustomFormItem } from "../../../components/form/CustomFormItem";
-import { CustomSelect, Option } from "../../../components/form/CustomSelect";
-import { CustomButton } from "../../../components/Button/CustomButton";
-import { PatientSelectorModal } from "../../../components/modals/PatientSelectorModal";
-import { QuickPatientRegister } from "./QuickPatientRegister";
-import type { Appointment } from "../models/appointment";
-import type { Patient } from "../../patient/models/patient";
-import type { ConfirmAppointmentRequest } from "../../authorization/models/authorization";
-import dayjs from "dayjs";
+} from '@ant-design/icons'
+import { CustomInput } from '../../../components/form/CustomInput'
+import { CustomFormItem } from '../../../components/form/CustomFormItem'
+import { CustomSelect, Option } from '../../../components/form/CustomSelect'
+import { CustomButton } from '../../../components/Button/CustomButton'
+import { PatientSelectorModal } from '../../../components/modals/PatientSelectorModal'
+import { QuickPatientRegister } from './QuickPatientRegister'
+import type { Appointment } from '../models/appointment'
+import type { Patient } from '../../patient/models/patient'
+import type { ConfirmAppointmentRequest } from '../../authorization/models/authorization'
+import dayjs from 'dayjs'
 
-const { Title, Text } = Typography;
+const { Title, Text } = Typography
 
-type PaymentType = "insurance" | "private" | "workplace_risk";
+type PaymentType = 'insurance' | 'private' | 'workplace_risk'
 
 interface ConfirmAppointmentModalProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: (data: ConfirmAppointmentRequest) => void;
-  appointment: Appointment | null;
-  insurances: Array<{ id: number; name: string }>;
-  loading?: boolean;
+  open: boolean
+  onClose: () => void
+  onConfirm: (data: ConfirmAppointmentRequest) => void
+  appointment: Appointment | null
+  insurances: Array<{ id: number; name: string }>
+  loading?: boolean
 }
 
 export const ConfirmAppointmentModal: React.FC<
   ConfirmAppointmentModalProps
 > = ({ open, onClose, onConfirm, appointment, insurances, loading }) => {
-  const [form] = Form.useForm();
-  const [paymentType, setPaymentType] = useState<PaymentType>("insurance");
-  const [showPatientSelector, setShowPatientSelector] = useState(false);
-  const [showQuickRegister, setShowQuickRegister] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [form] = Form.useForm()
+  const [paymentType, setPaymentType] = useState<PaymentType>('insurance')
+  const [showPatientSelector, setShowPatientSelector] = useState(false)
+  const [showQuickRegister, setShowQuickRegister] = useState(false)
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
 
   // Determinar si la cita es consulta o terapia
-  const isTherapy = appointment?.type === "therapy";
-  const isConsultation = appointment?.type === "consultation";
+  const isTherapy = appointment?.type === 'therapy'
+  const isConsultation = appointment?.type === 'consultation'
 
   // Determinar si requiere autorización previa
   // SOLO terapia + seguro requiere autorización previa
-  const requiresAuthorization = isTherapy && paymentType === "insurance";
+  const requiresAuthorization = isTherapy && paymentType === 'insurance'
 
   useEffect(() => {
     if (appointment && open) {
       // Configurar paciente
       if (appointment.patient) {
-        setSelectedPatient(appointment.patient as Patient);
+        setSelectedPatient(appointment.patient as Patient)
       } else {
-        setSelectedPatient(null);
+        setSelectedPatient(null)
       }
 
       // Configurar valores iniciales
-      const initialPaymentType = appointment.payment_type || "insurance";
+      const initialPaymentType = appointment.payment_type || 'insurance'
       form.setFieldsValue({
         payment_type: initialPaymentType,
         insurance_id: appointment.insurance_id,
         case_number: appointment.case_number,
-      });
-      setPaymentType(initialPaymentType as PaymentType);
+      })
+      setPaymentType(initialPaymentType as PaymentType)
     }
-  }, [appointment, open, form]);
+  }, [appointment, open, form])
 
   const handlePaymentTypeChange = (e: any) => {
-    const value = e.target.value as PaymentType;
-    setPaymentType(value);
+    const value = e.target.value as PaymentType
+    setPaymentType(value)
 
     // Limpiar campos según el tipo de pago
-    if (value === "private") {
+    if (value === 'private') {
       form.setFieldsValue({
         authorization_number: undefined,
         insurance_id: undefined,
         authorization_date: undefined,
         case_number: undefined,
-      });
-    } else if (value === "workplace_risk") {
+      })
+    } else if (value === 'workplace_risk') {
       form.setFieldsValue({
         authorization_number: undefined,
         insurance_id: undefined,
         authorization_date: undefined,
-      });
-    } else if (value === "insurance") {
+      })
+    } else if (value === 'insurance') {
       form.setFieldsValue({
         case_number: undefined,
-      });
+      })
     }
-  };
+  }
 
   const handlePatientSelect = (patient: Patient | null) => {
-    setSelectedPatient(patient);
+    setSelectedPatient(patient)
     if (patient && patient.insurance) {
-      form.setFieldValue("insurance_id", patient.insurance.id);
+      form.setFieldValue('insurance_id', patient.insurance.id)
     }
-  };
+  }
 
   const handleQuickRegisterSuccess = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setShowQuickRegister(false);
+    setSelectedPatient(patient)
+    setShowQuickRegister(false)
     if (patient.insurance) {
-      form.setFieldValue("insurance_id", patient.insurance.id);
+      form.setFieldsValue({
+        guest_firstname: patient.firstname,
+        guest_lastname: patient.lastname,
+        dni: patient.dni,
+        phone: patient.phone,
+        passport: patient.passport,
+        insurance_code: patient.insurance_code,
+        insurance_id: patient.insurance?.id,
+      })
     }
-  };
+  }
 
   const handleSubmit = (values: any) => {
     const data: ConfirmAppointmentRequest = {
       patient_id: selectedPatient?.id,
       payment_type: values.payment_type,
       notes: values.notes,
-    };
+    }
 
     // Solo incluir datos de seguro si es por seguro
-    if (values.payment_type === "insurance") {
-      data.insurance_id = values.insurance_id;
-      
+    if (values.payment_type === 'insurance') {
+      data.insurance_id = values.insurance_id
+
       // Solo incluir autorización si es TERAPIA por seguro
       if (isTherapy) {
-        data.authorization_number = values.authorization_number;
+        data.authorization_number = values.authorization_number
         if (values.authorization_date) {
           data.authorization_date = dayjs(values.authorization_date).format(
-            "YYYY-MM-DD"
-          );
+            'YYYY-MM-DD'
+          )
         }
       }
     }
 
     // Solo incluir case_number si es riesgo laboral
-    if (values.payment_type === "workplace_risk") {
-      data.case_number = values.case_number;
+    if (values.payment_type === 'workplace_risk') {
+      data.case_number = values.case_number
     }
 
-    onConfirm(data);
-  };
+    onConfirm(data)
+  }
 
   const handleCancel = () => {
-    form.resetFields();
-    setSelectedPatient(null);
-    setPaymentType("insurance");
-    onClose();
-  };
+    form.resetFields()
+    setSelectedPatient(null)
+    setPaymentType('insurance')
+    onClose()
+  }
 
-  if (!appointment) return null;
+  if (!appointment) return null
 
-  const hasPatient = selectedPatient || appointment.patient;
+  const hasPatient = selectedPatient || appointment.patient
 
   return (
     <>
       <Modal
         title={
           <Space>
-            <CheckCircleOutlined style={{ color: "#52c41a" }} />
-            <span>Confirmar Entrada - {isTherapy ? "Terapia" : "Consulta"}</span>
+            <CheckCircleOutlined style={{ color: '#52c41a' }} />
+            <span>
+              Confirmar Entrada - {isTherapy ? 'Terapia' : 'Consulta'}
+            </span>
           </Space>
         }
         open={open}
@@ -182,44 +192,47 @@ export const ConfirmAppointmentModal: React.FC<
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={{
-            payment_type: "insurance",
+            payment_type: 'insurance',
             authorization_date: dayjs(),
           }}
         >
           {/* Información de la Cita */}
           <Card size="small" style={{ marginBottom: 16 }}>
-            <Space direction="vertical" style={{ width: "100%" }} size="small">
+            <Space direction="vertical" style={{ width: '100%' }} size="small">
               <Title level={5} style={{ margin: 0 }}>
                 <CalendarOutlined /> Información de la Cita
               </Title>
               <Row gutter={16}>
                 <Col span={12}>
-                  <Text type="secondary">Tipo:</Text>{" "}
-                  <Text strong style={{ color: isTherapy ? "#1890ff" : "#52c41a" }}>
-                    {isTherapy ? "TERAPIA" : "CONSULTA"}
+                  <Text type="secondary">Tipo:</Text>{' '}
+                  <Text
+                    strong
+                    style={{ color: isTherapy ? '#1890ff' : '#52c41a' }}
+                  >
+                    {isTherapy ? 'TERAPIA' : 'CONSULTA'}
                   </Text>
                 </Col>
                 <Col span={12}>
-                  <Text type="secondary">Fecha:</Text>{" "}
+                  <Text type="secondary">Fecha:</Text>{' '}
                   <Text strong>
-                    {dayjs(appointment.appointment_date).format("DD/MM/YYYY")}
+                    {dayjs(appointment.appointment_date).format('DD/MM/YYYY')}
                   </Text>
                 </Col>
               </Row>
               <Row gutter={16}>
                 <Col span={12}>
-                  <Text type="secondary">Hora:</Text>{" "}
+                  <Text type="secondary">Hora:</Text>{' '}
                   <Text strong>
-                    {dayjs(appointment.start_time, "HH:mm").format("HH:mm")} -{" "}
-                    {dayjs(appointment.end_time, "HH:mm").format("HH:mm")}
+                    {dayjs(appointment.start_time, 'HH:mm').format('HH:mm')} -{' '}
+                    {dayjs(appointment.end_time, 'HH:mm').format('HH:mm')}
                   </Text>
                 </Col>
                 <Col span={12}>
-                  <Text type="secondary">Profesional:</Text>{" "}
+                  <Text type="secondary">Profesional:</Text>{' '}
                   <Text strong>
                     {appointment.employee
                       ? `${appointment.employee.firstname} ${appointment.employee.lastname}`
-                      : "Sin asignar"}
+                      : 'Sin asignar'}
                   </Text>
                 </Col>
               </Row>
@@ -231,20 +244,20 @@ export const ConfirmAppointmentModal: React.FC<
             size="small"
             style={{
               marginBottom: 16,
-              backgroundColor: hasPatient ? "#f6ffed" : "#fff7e6",
-              borderColor: hasPatient ? "#b7eb8f" : "#ffd591",
+              backgroundColor: hasPatient ? '#f6ffed' : '#fff7e6',
+              borderColor: hasPatient ? '#b7eb8f' : '#ffd591',
             }}
           >
-            <Space direction="vertical" style={{ width: "100%" }} size="small">
+            <Space direction="vertical" style={{ width: '100%' }} size="small">
               <Title level={5} style={{ margin: 0 }}>
                 <UserOutlined /> Información del Paciente
               </Title>
 
               {hasPatient ? (
                 <>
-                  <Text strong style={{ fontSize: 16, color: "#52c41a" }}>
+                  <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
                     {selectedPatient?.firstname ||
-                      appointment.patient?.firstname}{" "}
+                      appointment.patient?.firstname}{' '}
                     {selectedPatient?.lastname || appointment.patient?.lastname}
                   </Text>
                   <Space>
@@ -255,7 +268,7 @@ export const ConfirmAppointmentModal: React.FC<
                     )}
                     {(selectedPatient?.phone || appointment.patient?.phone) && (
                       <Text type="secondary">
-                        Tel:{" "}
+                        Tel:{' '}
                         {selectedPatient?.phone || appointment.patient?.phone}
                       </Text>
                     )}
@@ -330,12 +343,12 @@ export const ConfirmAppointmentModal: React.FC<
           </CustomFormItem>
 
           {/* Campos de Seguro */}
-          {paymentType === "insurance" && (
+          {paymentType === 'insurance' && (
             <Card
               size="small"
               style={{
-                backgroundColor: "#e6f7ff",
-                borderColor: "#91d5ff",
+                backgroundColor: '#e6f7ff',
+                borderColor: '#91d5ff',
                 marginBottom: 16,
               }}
             >
@@ -393,11 +406,11 @@ export const ConfirmAppointmentModal: React.FC<
                         name="authorization_date"
                       >
                         <DatePicker
-                          style={{ width: "100%" }}
+                          style={{ width: '100%' }}
                           format="DD/MM/YYYY"
                           placeholder="Seleccionar fecha"
                           disabledDate={(current) =>
-                            current && current < dayjs().startOf("day")
+                            current && current < dayjs().startOf('day')
                           }
                         />
                       </CustomFormItem>
@@ -419,12 +432,12 @@ export const ConfirmAppointmentModal: React.FC<
           )}
 
           {/* Campos de Riesgo Laboral */}
-          {paymentType === "workplace_risk" && (
+          {paymentType === 'workplace_risk' && (
             <Card
               size="small"
               style={{
-                backgroundColor: "#fff7e6",
-                borderColor: "#ffd591",
+                backgroundColor: '#fff7e6',
+                borderColor: '#ffd591',
                 marginBottom: 16,
               }}
             >
@@ -435,13 +448,13 @@ export const ConfirmAppointmentModal: React.FC<
               <Alert
                 message={
                   isConsultation
-                    ? "Autorización Posterior"
-                    : "Número de Caso Requerido"
+                    ? 'Autorización Posterior'
+                    : 'Número de Caso Requerido'
                 }
                 description={
                   isConsultation
-                    ? "Para consultas de riesgo laboral, el paciente debe ir a IDOPPRIL después de la consulta para autorización"
-                    : "Para terapias de riesgo laboral, registre el número de caso"
+                    ? 'Para consultas de riesgo laboral, el paciente debe ir a IDOPPRIL después de la consulta para autorización'
+                    : 'Para terapias de riesgo laboral, registre el número de caso'
                 }
                 type="warning"
                 showIcon
@@ -471,7 +484,7 @@ export const ConfirmAppointmentModal: React.FC<
           </CustomFormItem>
 
           {/* Botones */}
-          <Space style={{ width: "100%", justifyContent: "flex-end" }}>
+          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
             <CustomButton onClick={handleCancel}>Cancelar</CustomButton>
             <CustomButton
               type="primary"
@@ -503,5 +516,5 @@ export const ConfirmAppointmentModal: React.FC<
         appointment={appointment}
       />
     </>
-  );
-};
+  )
+}

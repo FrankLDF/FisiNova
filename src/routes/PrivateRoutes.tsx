@@ -11,15 +11,17 @@ interface PrivateRoutesProps {
 }
 
 function PrivateRoutes({ children }: PrivateRoutesProps) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
-  return !isAuthenticated ? (
-    <Navigate to={PATH_LOGIN} replace />
-  ) : (
-    <AppShell headerContent={<Header />} navContent={<Navbar />}>
-      {children}
-    </AppShell>
-  )
+  if (!isLoading) {
+    return !isAuthenticated ? (
+      <Navigate to={PATH_LOGIN} replace />
+    ) : (
+      <AppShell headerContent={<Header />} navContent={<Navbar />}>
+        {children}
+      </AppShell>
+    )
+  }
 }
 
 export default PrivateRoutes

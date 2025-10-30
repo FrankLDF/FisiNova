@@ -25,11 +25,30 @@ export const Navbar = () => {
   )
 
   return (
-    <Menu
-      mode="inline"
-      style={{ width: '100%' }}
-      items={filteredItems}
-      onClick={handleClick}
-    />
+    <>
+      <style>{`
+        .wrap-menu .ant-menu-title-content{
+          white-space: normal !important;
+          word-break: break-word;
+          overflow: visible !important;
+          text-overflow: clip !important;
+          line-height: 1.35;
+        }
+        .wrap-menu .ant-menu-item,
+        .wrap-menu .ant-menu-submenu-title{
+          height: auto !important;
+          padding-top: 8px !important;
+          padding-bottom: 8px !important;
+        }
+      `}</style>
+
+      <Menu
+        mode="inline"
+        rootClassName="wrap-menu"
+        style={{ width: '100%' }}
+        items={filteredItems}
+        onClick={handleClick}
+      />
+    </>
   )
 }

@@ -1,16 +1,23 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import { PATH_ACCESS_DENIED, PATH_INICIAL, PATH_LOGIN, PATH_MAIN, PATH_NOT_FOUND } from "./pathts";
-import PublicRoutes from "./PublicRoutes";
-import PrivateRoutes from "./PrivateRoutes";
-import { NotFoundPage } from "../layout/NotFoundPage";
-import { AccessDenied } from "../layout/AccesDenied";
-import { Login } from "../features/auth/pages/Login";
-import { ConsultAppointments } from "../features/appointment/pages/ConsultAppointment";
-import { AppointmentForm } from "../features/appointment/pages/AppointmentForm";
-import { PATH_CONSULT_APPOINTMENTS } from "../features/appointment/menu/path";
-import { PATH_REGISTER_PERSONAL } from "../features/administrator/menu/path";
-import { RoleProtectedRoute } from "./RoleProtectedRoutes";
-import { Rol } from "../utils/constants";
+import { Navigate, Route, Routes } from 'react-router-dom'
+import {
+  PATH_ACCESS_DENIED,
+  PATH_CONSULTATIONS,
+  PATH_INICIAL,
+  PATH_LOGIN,
+  PATH_MAIN,
+  PATH_NOT_FOUND,
+} from './pathts'
+import PublicRoutes from './PublicRoutes'
+import PrivateRoutes from './PrivateRoutes'
+import { NotFoundPage } from '../layout/NotFoundPage'
+import { AccessDenied } from '../layout/AccesDenied'
+import { Login } from '../features/auth/pages/Login'
+import { ConsultAppointments } from '../features/appointment/pages/ConsultAppointment'
+import { AppointmentForm } from '../features/appointment/pages/AppointmentForm'
+import { PATH_CONSULT_APPOINTMENTS } from '../features/appointment/menu/path'
+import { PATH_REGISTER_PERSONAL } from '../features/administrator/menu/path'
+import { RoleProtectedRoute } from './RoleProtectedRoutes'
+import { Rol } from '../utils/constants'
 import { StaffForm } from '../features/staff/pages/StaffForm'
 import { ConsultStaff } from '../features/staff/pages/ConsultStaff'
 import { ScheduleTemplateForm } from '../features/staff/pages/ScheduleTemplateForm'
@@ -20,6 +27,7 @@ import {
   PATH_STAFF_SCHEDULES,
 } from '../features/staff/menu/path'
 import { AssignSchedule, ConsultStaffSchedules } from '../features/staff/pages'
+import { MedicConsultations } from '../features/consultation/pages/MedicConsultation'
 
 const AppRoutes = () => {
   return (
@@ -178,6 +186,16 @@ const AppRoutes = () => {
         element={
           <PrivateRoutes>
             <ConsultStaffSchedules />
+          </PrivateRoutes>
+        }
+      />
+      <Route
+        path={PATH_CONSULTATIONS}
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}>
+              <MedicConsultations />
+            </RoleProtectedRoute>
           </PrivateRoutes>
         }
       />

@@ -2,12 +2,15 @@
 
 export interface Staff {
   id?: number
-  first_name: string
-  last_name: string
+  firstname: string // ✅ CAMBIO: era first_name
+  lastname: string // ✅ CAMBIO: era last_name
   email?: string
   phone?: string
+  cellphone?: string
+  dni?: string
+  address?: string
   position_id: number
-  is_active?: boolean
+  active?: boolean // ✅ CAMBIO: era is_active
   created_at?: string
   updated_at?: string
 
@@ -22,24 +25,23 @@ export interface Staff {
 
 export interface StaffSchedule {
   id?: number
-  staff_id: number
+  staff_id: number // ✅ Apunta a employees.id
   schedule_day_id: number
   cubicle_id?: number
   assignment_date?: string
   end_date?: string
   is_override?: boolean
-  original_staff_id?: number
+  original_staff_id?: number // ✅ Apunta a employees.id
   status?: 'active' | 'cancelled' | 'completed'
   notes?: string
   created_at?: string
   updated_at?: string
 
-  staff?: Staff
+  staff?: Staff // ✅ Devuelve Employee (pero usamos interface Staff)
   schedule_day?: ScheduleDay
   cubicle?: Cubicle
-  original_staff?: Staff
+  original_staff?: Staff // ✅ Devuelve Employee
 }
-
 export interface ScheduleTemplate {
   id?: number
   name: string
@@ -53,9 +55,9 @@ export interface ScheduleTemplate {
 export interface ScheduleDay {
   id?: number
   schedule_template_id: number
-  day_of_week?: number // 1-7 (Lunes-Domingo), null para flexible
-  start_time: string // HH:mm format
-  end_time: string // HH:mm format
+  day_of_week?: number
+  start_time: string
+  end_time: string
   is_recurring?: boolean
   created_at?: string
   updated_at?: string
@@ -75,13 +77,17 @@ export interface Cubicle {
   updated_at?: string
 }
 
+// ✅ CAMBIO: CreateStaffRequest usa firstname/lastname/active
 export interface CreateStaffRequest {
-  first_name: string
-  last_name: string
+  firstname: string
+  lastname: string
   email?: string
   phone?: string
+  cellphone?: string
+  dni?: string
+  address?: string
   position_id: number
-  is_active?: boolean
+  active?: boolean
 }
 
 export interface CreateScheduleTemplateRequest {
@@ -96,19 +102,19 @@ export interface CreateScheduleTemplateRequest {
 }
 
 export interface CreateStaffScheduleRequest {
-  staff_id: number
+  staff_id: number // ✅ Se envía a employees
   schedule_day_id: number
   cubicle_id?: number
   assignment_date?: string
   end_date?: string
   is_override?: boolean
-  original_staff_id?: number
+  original_staff_id?: number // ✅ Se envía a employees
   status?: string
   notes?: string
 }
 
 export interface StaffFilters {
-  is_active?: boolean | string
+  active?: boolean | string
   search?: string
   position_id?: number
   paginate?: number

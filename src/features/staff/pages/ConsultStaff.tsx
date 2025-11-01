@@ -27,7 +27,7 @@ export const ConsultStaff = () => {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<StaffFilters>({
     paginate: 15,
-    is_active: true,
+    active: true,
   })
 
   const [searchValue, setSearchValue] = useState('')
@@ -78,14 +78,28 @@ export const ConsultStaff = () => {
       render: (_, record) => (
         <Space direction="vertical" size={0}>
           <span style={{ fontWeight: 500 }}>
-            {`${record.first_name} ${record.last_name}`}
+            {`${record.firstname} ${record.lastname}`}
           </span>
           {record.email && (
             <span style={{ fontSize: 12, color: '#666' }}>{record.email}</span>
           )}
         </Space>
       ),
-      sorter: (a, b) => a.first_name.localeCompare(b.first_name),
+      sorter: (a, b) => a.firstname.localeCompare(b.firstname),
+    },
+    {
+      title: 'Identificación',
+      key: 'identification',
+      render: (_, record) => (
+        <Space direction="vertical" size={0}>
+          {record.dni && (
+            <span style={{ fontSize: 12 }}>DNI: {record.dni}</span>
+          )}
+          {record.phone && (
+            <span style={{ fontSize: 12 }}>Tel: {record.phone}</span>
+          )}
+        </Space>
+      ),
     },
     {
       title: 'Posición',
@@ -95,18 +109,12 @@ export const ConsultStaff = () => {
       ),
     },
     {
-      title: 'Teléfono',
-      dataIndex: 'phone',
-      key: 'phone',
-      render: (phone: string) => phone || '-',
-    },
-    {
       title: 'Estado',
-      dataIndex: 'is_active',
-      key: 'is_active',
-      render: (is_active: boolean) => (
-        <Tag color={is_active ? 'green' : 'red'}>
-          {is_active ? 'Activo' : 'Inactivo'}
+      dataIndex: 'active',
+      key: 'active',
+      render: (active: boolean) => (
+        <Tag color={active ? 'green' : 'red'}>
+          {active ? 'Activo' : 'Inactivo'}
         </Tag>
       ),
     },
@@ -165,7 +173,7 @@ export const ConsultStaff = () => {
   }
 
   const clearFilters = () => {
-    setFilters({ paginate: 15, is_active: true })
+    setFilters({ paginate: 15, active: true })
     setSearchValue('')
   }
 
@@ -191,7 +199,7 @@ export const ConsultStaff = () => {
               <Col xs={24} sm={12} md={8} lg={8}>
                 <label>Buscar:</label>
                 <Search
-                  placeholder="Nombre, email..."
+                  placeholder="Nombre, email, DNI..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onSearch={handleSearch}
@@ -206,8 +214,8 @@ export const ConsultStaff = () => {
                   style={{ width: '100%' }}
                   placeholder="Estado"
                   allowClear
-                  value={filters.is_active?.toString()}
-                  onChange={(value) => handleFilterChange('is_active', value)}
+                  value={filters.active?.toString()}
+                  onChange={(value) => handleFilterChange('active', value)}
                 >
                   <Option value="true">Activo</Option>
                   <Option value="false">Inactivo</Option>

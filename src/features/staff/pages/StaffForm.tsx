@@ -1,5 +1,3 @@
-// src/features/staff/pages/StaffForm.tsx
-
 import { Card, Row, Col, Form, Grid, Skeleton } from 'antd'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
@@ -74,12 +72,15 @@ export const StaffForm = () => {
       const staff = staffData.data
 
       form.setFieldsValue({
-        first_name: staff.first_name,
-        last_name: staff.last_name,
+        firstname: staff.firstname,
+        lastname: staff.lastname,
         email: staff.email,
         phone: staff.phone,
+        cellphone: staff.cellphone,
+        dni: staff.dni,
+        address: staff.address,
         position_id: staff.position_id,
-        is_active: staff.is_active,
+        active: staff.active,
       })
     }
   }, [staffData, form, id])
@@ -88,7 +89,6 @@ export const StaffForm = () => {
     try {
       setLoadingPositions(true)
       const response = await staffService.getPositions()
-      console.log({ response })
       const positionData = response?.data?.data || response?.data || []
       setPositions(Array.isArray(positionData) ? positionData : [])
     } catch (error) {
@@ -134,7 +134,7 @@ export const StaffForm = () => {
 
   const onFinish = (values: any) => {
     try {
-      if (!values.first_name || !values.last_name) {
+      if (!values.firstname || !values.lastname) {
         showNotification({
           type: 'error',
           message: 'Nombre y apellido son requeridos',
@@ -152,7 +152,7 @@ export const StaffForm = () => {
 
       const staffData = {
         ...values,
-        is_active: values.is_active ?? true,
+        active: values.active ?? true,
       }
 
       if (mode === 'create') {
@@ -263,7 +263,7 @@ export const StaffForm = () => {
 
                 <Row gutter={[16, 16]}>
                   <Col xs={24} md={12}>
-                    <CustomFormItem label="Nombre" name="first_name" required>
+                    <CustomFormItem label="Nombre" name="firstname" required>
                       <CustomInput
                         placeholder="Nombre del personal"
                         readOnly={isViewMode}
@@ -272,7 +272,7 @@ export const StaffForm = () => {
                   </Col>
 
                   <Col xs={24} md={12}>
-                    <CustomFormItem label="Apellido" name="last_name" required>
+                    <CustomFormItem label="Apellido" name="lastname" required>
                       <CustomInput
                         placeholder="Apellido del personal"
                         readOnly={isViewMode}
@@ -282,6 +282,15 @@ export const StaffForm = () => {
                 </Row>
 
                 <Row gutter={[16, 16]}>
+                  <Col xs={24} md={12}>
+                    <CustomFormItem label="DNI/Cédula" name="dni">
+                      <CustomInput
+                        placeholder="Número de identificación"
+                        readOnly={isViewMode}
+                      />
+                    </CustomFormItem>
+                  </Col>
+
                   <Col xs={24} md={12}>
                     <CustomFormItem
                       label="Email"
@@ -299,11 +308,34 @@ export const StaffForm = () => {
                       />
                     </CustomFormItem>
                   </Col>
+                </Row>
 
+                <Row gutter={[16, 16]}>
                   <Col xs={24} md={12}>
                     <CustomFormItem label="Teléfono" name="phone">
                       <CustomInput
                         placeholder="Número de teléfono"
+                        readOnly={isViewMode}
+                      />
+                    </CustomFormItem>
+                  </Col>
+
+                  <Col xs={24} md={12}>
+                    <CustomFormItem label="Celular" name="cellphone">
+                      <CustomInput
+                        placeholder="Número de celular"
+                        readOnly={isViewMode}
+                      />
+                    </CustomFormItem>
+                  </Col>
+                </Row>
+
+                <Row gutter={[16, 16]}>
+                  <Col xs={24}>
+                    <CustomFormItem label="Dirección" name="address">
+                      <CustomInput.TextArea
+                        rows={2}
+                        placeholder="Dirección completa"
                         readOnly={isViewMode}
                       />
                     </CustomFormItem>
@@ -339,7 +371,7 @@ export const StaffForm = () => {
                   </Col>
 
                   <Col xs={24} md={12}>
-                    <CustomFormItem label="Estado" name="is_active">
+                    <CustomFormItem label="Estado" name="active">
                       <CustomSelect
                         placeholder="Estado del personal"
                         readOnly={isViewMode}

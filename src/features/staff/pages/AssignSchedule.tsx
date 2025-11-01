@@ -1,3 +1,5 @@
+// src/features/staff/pages/AssignSchedule.tsx
+
 import { Card, Row, Col, Form, Steps, Space, Typography, Divider } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
@@ -51,7 +53,7 @@ export const AssignSchedule = () => {
   const loadStaff = async () => {
     try {
       setLoadingStaff(true)
-      const response = await staffService.getStaff({ is_active: true })
+      const response = await staffService.getStaff({ active: true })
       const staffData = response?.data?.data || response?.data || []
       setStaffList(Array.isArray(staffData) ? staffData : [])
     } catch (error) {
@@ -123,7 +125,7 @@ export const AssignSchedule = () => {
   const handleStaffChange = (staffId: number) => {
     const staff = staffList.find((s) => s.id === staffId)
     setSelectedStaff(staff || null)
-    form.setFieldValue('staff_id', staffId) // <-- Actualiza el valor en el formulario
+    form.setFieldValue('staff_id', staffId)
   }
 
   const handleTemplateChange = (templateId: number) => {
@@ -289,7 +291,7 @@ export const AssignSchedule = () => {
                         >
                           {staffList.map((staff) => (
                             <Option key={staff.id} value={staff.id!}>
-                              {`${staff.first_name} ${staff.last_name} - ${
+                              {`${staff.firstname} ${staff.lastname} - ${
                                 staff.position?.name || 'Sin posición'
                               }`}
                             </Option>
@@ -303,8 +305,7 @@ export const AssignSchedule = () => {
                         <Card size="small" style={{ background: '#e6f7ff' }}>
                           <Space direction="vertical" size={4}>
                             <Text strong>
-                              {selectedStaff.first_name}{' '}
-                              {selectedStaff.last_name}
+                              {selectedStaff.firstname} {selectedStaff.lastname}
                             </Text>
                             <Text type="secondary">
                               Posición: {selectedStaff.position?.name}
@@ -336,7 +337,6 @@ export const AssignSchedule = () => {
                     Paso 2: Seleccionar Horario
                   </Title>
 
-                  {/* Campos ocultos del paso anterior */}
                   <CustomFormItem name="staff_id" hidden>
                     <CustomSelect />
                   </CustomFormItem>
@@ -435,7 +435,6 @@ export const AssignSchedule = () => {
                     Paso 3: Configuración de la Asignación
                   </Title>
 
-                  {/* Campos ocultos de los pasos anteriores */}
                   <CustomFormItem name="staff_id" hidden>
                     <CustomSelect />
                   </CustomFormItem>

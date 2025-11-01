@@ -37,7 +37,7 @@ export const ConsultStaffSchedules = () => {
   const loadStaff = async () => {
     try {
       setLoadingStaff(true)
-      const response = await staffService.getStaff({ is_active: true })
+      const response = await staffService.getStaff({ active: true })
       const staffData = response?.data?.data || response?.data || []
       setStaffList(Array.isArray(staffData) ? staffData : [])
     } catch (error) {
@@ -87,7 +87,7 @@ export const ConsultStaffSchedules = () => {
         <Space direction="vertical" size={0}>
           <span style={{ fontWeight: 500 }}>
             {record.staff
-              ? `${record.staff.first_name} ${record.staff.last_name}`
+              ? `${record.staff.firstname} ${record.staff.lastname}`
               : 'Sin asignar'}
           </span>
           {record.staff?.position && (
@@ -265,7 +265,7 @@ export const ConsultStaffSchedules = () => {
                 >
                   {staffList.map((staff) => (
                     <Option key={staff.id} value={staff.id!}>
-                      {`${staff.first_name} ${staff.last_name}`}
+                      {`${staff.firstname} ${staff.lastname}`}
                     </Option>
                   ))}
                 </Select>

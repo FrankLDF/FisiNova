@@ -1,3 +1,4 @@
+// src/features/authorization/services/authorization.ts
 import serverCore from "../../../interceptors/axiosInstance";
 import { buildQueryParams } from "../../../utils/urlParams";
 import type {
@@ -42,6 +43,14 @@ class AuthorizationService {
   ) {
     const res = await serverCore.post(
       `/appointments/${appointmentId}/confirm`,
+      data
+    );
+    return res.data;
+  }
+
+  async authorizeTherapy(appointmentId: number, data: any) {
+    const res = await serverCore.post(
+      `/authorizations/${appointmentId}/authorize-therapy`,
       data
     );
     return res.data;

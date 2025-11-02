@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Programming Projects/Tesis/fisinova-core/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

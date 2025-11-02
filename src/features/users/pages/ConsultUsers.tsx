@@ -1,4 +1,4 @@
-// src/features/staff/pages/ConsultStaff.tsx
+// src/features/users/pages/ConsultUsers.tsx
 
 import { Card, Table, Row, Col, Select, Space, Tag, Tooltip, Input } from 'antd'
 import {
@@ -7,6 +7,7 @@ import {
   PlusOutlined,
   EyeOutlined,
   SearchOutlined,
+  LockOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
@@ -15,38 +16,36 @@ import { CustomButton } from '../../../components/Button/CustomButton'
 import { CustomConfirm } from '../../../components/pop-confirm/CustomConfirm'
 import { useCustomMutation } from '../../../hooks/UseCustomMutation'
 import { showNotification } from '../../../utils/showNotification'
-import staffService from '../services/staff'
-import type { Staff, StaffFilters } from '../models/staff'
+import userService from '../services/user'
+import type { UserModel, UserFilters } from '../models/user'
 import type { ColumnsType } from 'antd/es/table'
 import { showHandleError } from '../../../utils/handleError'
 
 const { Option } = Select
 const { Search } = Input
 
-export const ConsultStaff = () => {
+export const ConsultUsers = () => {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState<StaffFilters>({
+  const [filters, setFilters] = useState<UserFilters>({
     paginate: 15,
-    active: true,
   })
-
   const [searchValue, setSearchValue] = useState('')
 
   const {
-    data: staffData,
+    data: usersData,
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ['staff', filters],
-    queryFn: () => staffService.getStaff(filters),
+    queryKey: ['users', filters],
+    queryFn: () => userService.getUsers(filters),
   })
 
-  const { mutate: deleteStaff } = useCustomMutation({
-    execute: staffService.deleteStaff,
+  const { mutate: deleteUser } = useCustomMutation({
+    execute: userService.deleteUser,
     onSuccess: () => {
       showNotification({
         type: 'success',
-        message: 'Personal eliminado exitosamente',
+        message: 'Usuario eliminado exitosamente',
       })
       refetch()
     },
@@ -55,58 +54,86 @@ export const ConsultStaff = () => {
     },
   })
 
-  const handleViewStaff = (staffId: number) => {
-    navigate(`/staff/${staffId}`)
+  const { mutate: resetPassword } = useCustomMutation({
+    execute: userService.resetPassword,
+    onSuccess: () => {
+      showNotification({
+        type: 'success',
+        message: 'Contraseña reseteada a: CAMBIAME',
+      })
+    },
+    onError: (err) => {
+      showHandleError(err)
+    },
+  })
+
+  const handleViewUser = (userId: number) => {
+    navigate(`/users/${userId}`)
   }
 
-  const handleEditStaff = (staffId: number) => {
-    navigate(`/staff/${staffId}/edit`)
+  const handleEditUser = (userId: number) => {
+    navigate(`/users/${userId}/edit`)
   }
 
-  const handleCreateStaff = () => {
-    navigate('/create-staff')
+  const handleCreateUser = () => {
+    navigate('/create-user')
   }
 
-  const handleDeleteStaff = (staffId: number) => {
-    deleteStaff(staffId)
+  const handleDeleteUser = (userId: number) => {
+    deleteUser(userId)
   }
 
-  const columns: ColumnsType<Staff> = [
+  const handleResetPassword = (userId: number) => {
+    resetPassword(userId)
+  }
+
+  const columns: ColumnsType<UserModel> = [
     {
-      title: 'Nombre Completo',
-      key: 'fullName',
+      title: 'Usuario',
+      key: 'user',
       render: (_, record) => (
         <Space direction="vertical" size={0}>
-          <span style={{ fontWeight: 500 }}>
-            {`${record.firstname} ${record.lastname}`}
-          </span>
-          {record.email && (
-            <span style={{ fontSize: 12, color: '#666' }}>{record.email}</span>
+          <span style={{ fontWeight: 500 }}>{record.name}</span>
+          <span style={{ fontSize: 12, color: '#666' }}>{record.email}</span>
+        </Space>
+      ),
+      sorter: (a, b) => a.name.localeCompare(b.name),
+    },
+    {
+      title: 'Roles',
+      key: 'roles',
+      render: (_, record) => (
+        <Space wrap>
+          {record.roles && record.roles.length > 0 ? (
+            record.roles.map((role) => (
+              <Tag key={role.id} color="blue">
+                {role.name}
+              </Tag>
+            ))
+          ) : (
+            <Tag>Sin roles</Tag>
           )}
         </Space>
       ),
-      sorter: (a, b) => a.firstname.localeCompare(b.firstname),
     },
     {
-      title: 'Identificación',
-      key: 'identification',
-      render: (_, record) => (
-        <Space direction="vertical" size={0}>
-          {record.dni && (
-            <span style={{ fontSize: 12 }}>DNI: {record.dni}</span>
-          )}
-          {record.phone && (
-            <span style={{ fontSize: 12 }}>Tel: {record.phone}</span>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: 'Posición',
-      key: 'position',
-      render: (_, record) => (
-        <Tag color="blue">{record.position?.name || 'Sin asignar'}</Tag>
-      ),
+      title: 'Personal Asociado',
+      key: 'employee',
+      render: (_, record) =>
+        record.employee ? (
+          <Space direction="vertical" size={0}>
+            <span>
+              {record.employee.firstname} {record.employee.lastname}
+            </span>
+            {record.employee.position && (
+              <Tag color="cyan" style={{ fontSize: 11 }}>
+                {record.employee.position.name}
+              </Tag>
+            )}
+          </Space>
+        ) : (
+          <Tag>Sin personal</Tag>
+        ),
     },
     {
       title: 'Estado',
@@ -128,7 +155,7 @@ export const ConsultStaff = () => {
             <CustomButton
               type="text"
               icon={<EyeOutlined />}
-              onClick={() => handleViewStaff(record.id!)}
+              onClick={() => handleViewUser(record.id!)}
             />
           </Tooltip>
 
@@ -136,14 +163,26 @@ export const ConsultStaff = () => {
             <CustomButton
               type="text"
               icon={<EditOutlined />}
-              onClick={() => handleEditStaff(record.id!)}
+              onClick={() => handleEditUser(record.id!)}
             />
           </Tooltip>
 
           <CustomConfirm
-            title="¿Estás seguro de eliminar este personal?"
+            title="¿Resetear contraseña?"
+            description="La contraseña será: CAMBIAME"
+            onConfirm={() => handleResetPassword(record.id!)}
+            okText="Sí, resetear"
+            cancelText="Cancelar"
+          >
+            <Tooltip title="Resetear contraseña">
+              <CustomButton type="text" icon={<LockOutlined />} />
+            </Tooltip>
+          </CustomConfirm>
+
+          <CustomConfirm
+            title="¿Estás seguro de eliminar este usuario?"
             description="Esta acción no se puede deshacer"
-            onConfirm={() => handleDeleteStaff(record.id!)}
+            onConfirm={() => handleDeleteUser(record.id!)}
             okText="Sí, eliminar"
             cancelText="Cancelar"
           >
@@ -161,32 +200,25 @@ export const ConsultStaff = () => {
     },
   ]
 
-  const handleFilterChange = (key: keyof StaffFilters, value: any) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
-  }
-
   const handleSearch = (value: string) => {
     setFilters((prev) => ({ ...prev, search: value }))
   }
 
   const clearFilters = () => {
-    setFilters({ paginate: 15, active: true })
+    setFilters({ paginate: 15 })
     setSearchValue('')
   }
 
-  const tableData = staffData?.data?.data || staffData?.data || []
+  const tableData = usersData?.data?.data || usersData?.data || []
   const pagination = {
-    current: staffData?.data?.current_page || 1,
-    pageSize: staffData?.data?.per_page || filters.paginate || 15,
-    total: staffData?.data?.total || tableData.length || 0,
+    current: usersData?.data?.current_page || 1,
+    pageSize: usersData?.data?.per_page || filters.paginate || 15,
+    total: usersData?.data?.total || tableData.length || 0,
     showSizeChanger: true,
     showQuickJumper: true,
-    showTotal: (total: number) => `Total: ${total} personal`,
+    showTotal: (total: number) => `Total: ${total} usuarios`,
     onChange: (page: number, size?: number) => {
-      handleFilterChange('paginate', size)
+      setFilters((prev) => ({ ...prev, paginate: size }))
     },
   }
 
@@ -199,7 +231,7 @@ export const ConsultStaff = () => {
               <Col xs={24} sm={12} md={8} lg={8}>
                 <label>Buscar:</label>
                 <Search
-                  placeholder="Nombre, email, DNI..."
+                  placeholder="Nombre o email..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onSearch={handleSearch}
@@ -215,7 +247,9 @@ export const ConsultStaff = () => {
                   placeholder="Estado"
                   allowClear
                   value={filters.active?.toString()}
-                  onChange={(value) => handleFilterChange('active', value)}
+                  onChange={(value) =>
+                    setFilters((prev) => ({ ...prev, active: value }))
+                  }
                 >
                   <Option value="true">Activo</Option>
                   <Option value="false">Inactivo</Option>
@@ -234,10 +268,10 @@ export const ConsultStaff = () => {
                 <CustomButton
                   type="primary"
                   icon={<PlusOutlined />}
-                  onClick={handleCreateStaff}
+                  onClick={handleCreateUser}
                   style={{ width: '100%' }}
                 >
-                  Nuevo Personal
+                  Nuevo Usuario
                 </CustomButton>
               </Col>
             </Row>
@@ -245,14 +279,14 @@ export const ConsultStaff = () => {
         </Col>
 
         <Col span={24}>
-          <Card title="Lista de Personal">
+          <Card title="Lista de Usuarios">
             <Table
               columns={columns}
               dataSource={tableData}
               loading={isLoading}
               rowKey="id"
               pagination={pagination}
-              scroll={{ x: 800 }}
+              scroll={{ x: 1000 }}
             />
           </Card>
         </Col>

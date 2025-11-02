@@ -2,12 +2,15 @@
 
 export interface Staff {
   id?: number
-  first_name: string
-  last_name: string
+  firstname: string
+  lastname: string
   email?: string
   phone?: string
+  cellphone?: string
+  dni?: string
+  address?: string
   position_id: number
-  is_active?: boolean
+  active?: boolean
   created_at?: string
   updated_at?: string
 
@@ -23,10 +26,14 @@ export interface Staff {
 export interface StaffSchedule {
   id?: number
   staff_id: number
-  schedule_day_id: number
+  schedule_template_id: number // ✅ CAMBIO: Ahora apunta al template completo
+  selected_days?: number[] | null // ✅ NUEVO: [1,2,3] para Lun,Mar,Mie. null=todos
   cubicle_id?: number
-  assignment_date?: string
+  start_date?: string // ✅ RENOMBRADO: Fecha inicio de vigencia
   end_date?: string
+  specific_date?: string // ✅ NUEVO: Para asignaciones puntuales
+  specific_start_time?: string // ✅ NUEVO: Hora inicio (solo si specific_date)
+  specific_end_time?: string // ✅ NUEVO: Hora fin (solo si specific_date)
   is_override?: boolean
   original_staff_id?: number
   status?: 'active' | 'cancelled' | 'completed'
@@ -35,7 +42,7 @@ export interface StaffSchedule {
   updated_at?: string
 
   staff?: Staff
-  schedule_day?: ScheduleDay
+  schedule_template?: ScheduleTemplate // ✅ CAMBIO: Ahora trae el template completo
   cubicle?: Cubicle
   original_staff?: Staff
 }
@@ -53,9 +60,9 @@ export interface ScheduleTemplate {
 export interface ScheduleDay {
   id?: number
   schedule_template_id: number
-  day_of_week?: number // 1-7 (Lunes-Domingo), null para flexible
-  start_time: string // HH:mm format
-  end_time: string // HH:mm format
+  day_of_week?: number
+  start_time: string
+  end_time: string
   is_recurring?: boolean
   created_at?: string
   updated_at?: string
@@ -76,12 +83,15 @@ export interface Cubicle {
 }
 
 export interface CreateStaffRequest {
-  first_name: string
-  last_name: string
+  firstname: string
+  lastname: string
   email?: string
   phone?: string
+  cellphone?: string
+  dni?: string
+  address?: string
   position_id: number
-  is_active?: boolean
+  active?: boolean
 }
 
 export interface CreateScheduleTemplateRequest {
@@ -97,10 +107,14 @@ export interface CreateScheduleTemplateRequest {
 
 export interface CreateStaffScheduleRequest {
   staff_id: number
-  schedule_day_id: number
+  schedule_template_id: number // ✅ CAMBIO: Template completo
+  selected_days?: number[] | null // ✅ NUEVO: Días específicos (opcional)
   cubicle_id?: number
-  assignment_date?: string
+  start_date?: string // ✅ RENOMBRADO: Inicio de vigencia
   end_date?: string
+  specific_date?: string // ✅ NUEVO: Fecha puntual
+  specific_start_time?: string // ✅ NUEVO: Hora inicio puntual
+  specific_end_time?: string // ✅ NUEVO: Hora fin puntual
   is_override?: boolean
   original_staff_id?: number
   status?: string
@@ -108,7 +122,7 @@ export interface CreateStaffScheduleRequest {
 }
 
 export interface StaffFilters {
-  is_active?: boolean | string
+  active?: boolean | string
   search?: string
   position_id?: number
   paginate?: number

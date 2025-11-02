@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from 'react-router-dom'
 import {
   PATH_ACCESS_DENIED,
   PATH_CONSULTATIONS,
@@ -6,42 +6,47 @@ import {
   PATH_LOGIN,
   PATH_MAIN,
   PATH_NOT_FOUND,
-} from "./pathts";
-import PublicRoutes from "./PublicRoutes";
-import PrivateRoutes from "./PrivateRoutes";
-import { NotFoundPage } from "../layout/NotFoundPage";
-import { AccessDenied } from "../layout/AccesDenied";
-import { Login } from "../features/auth/pages/Login";
-import { ConsultAppointments } from "../features/appointment/pages/ConsultAppointment";
-import { AppointmentForm } from "../features/appointment/pages/AppointmentForm";
-import { PATH_CONSULT_APPOINTMENTS } from "../features/appointment/menu/path";
-import { PATH_REGISTER_PERSONAL } from "../features/administrator/menu/path";
-import { RoleProtectedRoute } from "./RoleProtectedRoutes";
-import { Rol } from "../utils/constants";
-import { StaffForm } from "../features/staff/pages/StaffForm";
-import { ConsultStaff } from "../features/staff/pages/ConsultStaff";
-import { ScheduleTemplateForm } from "../features/staff/pages/ScheduleTemplateForm";
-import { ConsultScheduleTemplates } from "../features/staff/pages/ConsultScheduleTemplates";
-import {
-  PATH_ASSIGN_SCHEDULE,
-  PATH_STAFF_SCHEDULES,
-} from "../features/staff/menu/path";
-import { AssignSchedule, ConsultStaffSchedules } from "../features/staff/pages";
-import { MedicDashboard } from "../features/consultation/pages/MedicDashboard";
-import { ConsultationForm } from "../features/consultation/pages/ConsultationForm";
-import { isMedic } from "../utils/authFunctions";
-import { useAuth } from "../store/auth/AuthContext";
-import { use } from "react";
+} from './pathts'
+import PublicRoutes from './PublicRoutes'
+import PrivateRoutes from './PrivateRoutes'
+import { NotFoundPage } from '../layout/NotFoundPage'
+import { AccessDenied } from '../layout/AccesDenied'
+import { Login } from '../features/auth/pages/Login'
+
+// ========== CITAS ==========
+import { ConsultAppointments } from '../features/appointment/pages/ConsultAppointment'
+import { AppointmentForm } from '../features/appointment/pages/AppointmentForm'
+import { PATH_CONSULT_APPOINTMENTS } from '../features/appointment/menu/path'
+
+// ========== PERSONAL Y HORARIOS ==========
+import { StaffForm } from '../features/staff/pages/StaffForm'
+import { ConsultStaff } from '../features/staff/pages/ConsultStaff'
+import { ScheduleTemplateForm } from '../features/staff/pages/ScheduleTemplateForm'
+import { ConsultScheduleTemplates } from '../features/staff/pages/ConsultScheduleTemplates'
+import { AssignSchedule, ConsultStaffSchedules } from '../features/staff/pages'
+
+// ========== CONSULTAS MÉDICAS ==========
+import { MedicDashboard } from '../features/consultation/pages/MedicDashboard'
+import { ConsultationForm } from '../features/consultation/pages/ConsultationForm'
+
+// ========== USUARIOS ==========
+import { ConsultUsers } from '../features/users/pages/ConsultUsers'
+import { UserForm } from '../features/users/pages/UserForm'
+
+// ========== OTROS ==========
+import { RoleProtectedRoute } from './RoleProtectedRoutes'
+import { Rol } from '../utils/constants'
+import { isMedic } from '../utils/authFunctions'
+import { useAuth } from '../store/auth/AuthContext'
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user } = useAuth()
 
-  if (!user) {
-    return <></>;
-  }
+  if (!user) return <></>
+
   return (
     <Routes>
-      {/* Rutas públicas */}
+      {/* ========== RUTAS PÚBLICAS ========== */}
       <Route
         path={PATH_LOGIN}
         element={
@@ -50,14 +55,9 @@ const AppRoutes = () => {
           </PublicRoutes>
         }
       />
+      <Route path={PATH_INICIAL} element={<Navigate to={PATH_LOGIN} replace />} />
 
-      {/* Redirigir raíz a login */}
-      <Route
-        path={PATH_INICIAL}
-        element={<Navigate to={PATH_LOGIN} replace />}
-      />
-
-      {/* Redirigir /home según el rol del usuario */}
+      {/* ========== REDIRECCIÓN SEGÚN ROL ========== */}
       {isMedic(user.rols) ? (
         <Route
           path={PATH_MAIN}
@@ -78,21 +78,16 @@ const AppRoutes = () => {
         />
       )}
 
-      {/* Ruta de acceso denegado */}
+      {/* ========== ACCESO DENEGADO ========== */}
       <Route path={PATH_ACCESS_DENIED} element={<AccessDenied />} />
 
-      {/* Rutas de citas */}
+      {/* ========== CITAS ========== */}
       <Route
         path={PATH_CONSULT_APPOINTMENTS}
         element={
           <PrivateRoutes>
             <RoleProtectedRoute
-              allowedRoles={[
-                Rol.ADMIN,
-                Rol.SECRETARY,
-                Rol.MEDIC,
-                Rol.THERAPIST,
-              ]}
+              allowedRoles={[Rol.ADMIN, Rol.SECRETARY, Rol.MEDIC, Rol.THERAPIST]}
             >
               <ConsultAppointments />
             </RoleProtectedRoute>
@@ -133,14 +128,12 @@ const AppRoutes = () => {
         }
       />
 
-      {/* ✅ Rutas de Consultas Médicas */}
+      {/* ========== CONSULTAS MÉDICAS ========== */}
       <Route
         path={PATH_CONSULTATIONS}
         element={
           <PrivateRoutes>
-            <RoleProtectedRoute
-              allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}
-            >
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}>
               <MedicDashboard />
             </RoleProtectedRoute>
           </PrivateRoutes>
@@ -151,9 +144,7 @@ const AppRoutes = () => {
         path="/consultation/:id"
         element={
           <PrivateRoutes>
-            <RoleProtectedRoute
-              allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}
-            >
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}>
               <ConsultationForm />
             </RoleProtectedRoute>
           </PrivateRoutes>
@@ -164,16 +155,14 @@ const AppRoutes = () => {
         path="/consultation/:id/view"
         element={
           <PrivateRoutes>
-            <RoleProtectedRoute
-              allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}
-            >
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}>
               <ConsultationForm />
             </RoleProtectedRoute>
           </PrivateRoutes>
         }
       />
 
-      {/* Rutas de Personal y Horarios */}
+      {/* ========== PERSONAL ========== */}
       <Route
         path="/consult-staff"
         element={
@@ -218,6 +207,7 @@ const AppRoutes = () => {
         }
       />
 
+      {/* ========== HORARIOS ========== */}
       <Route
         path="/consult-schedules"
         element={
@@ -252,7 +242,7 @@ const AppRoutes = () => {
       />
 
       <Route
-        path={PATH_ASSIGN_SCHEDULE}
+        path="/assign-schedule"
         element={
           <PrivateRoutes>
             <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
@@ -263,7 +253,7 @@ const AppRoutes = () => {
       />
 
       <Route
-        path={PATH_STAFF_SCHEDULES}
+        path="/staff-schedules"
         element={
           <PrivateRoutes>
             <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
@@ -273,10 +263,55 @@ const AppRoutes = () => {
         }
       />
 
-      {/* 404 */}
+      {/* ========== USUARIOS ========== */}
+      <Route
+        path="/consult-users"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <ConsultUsers />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/create-user"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <UserForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/users/:id"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <UserForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/users/:id/edit"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <UserForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      {/* ========== 404 ========== */}
       <Route path={PATH_NOT_FOUND} element={<NotFoundPage />} />
     </Routes>
-  );
-};
+  )
+}
 
-export default AppRoutes;
+export default AppRoutes

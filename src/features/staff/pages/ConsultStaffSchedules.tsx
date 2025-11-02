@@ -1,5 +1,10 @@
 import { Card, Table, Row, Col, Select, Space, Tag, Tooltip } from 'antd'
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import {
+  DeleteOutlined,
+  PlusOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+} from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -37,7 +42,7 @@ export const ConsultStaffSchedules = () => {
   const loadStaff = async () => {
     try {
       setLoadingStaff(true)
-      const response = await staffService.getStaff({ is_active: true })
+      const response = await staffService.getStaff({ active: true })
       const staffData = response?.data?.data || response?.data || []
       setStaffList(Array.isArray(staffData) ? staffData : [])
     } catch (error) {
@@ -87,7 +92,7 @@ export const ConsultStaffSchedules = () => {
         <Space direction="vertical" size={0}>
           <span style={{ fontWeight: 500 }}>
             {record.staff
-              ? `${record.staff.first_name} ${record.staff.last_name}`
+              ? `${record.staff.firstname} ${record.staff.lastname}`
               : 'Sin asignar'}
           </span>
           {record.staff?.position && (
@@ -99,30 +104,131 @@ export const ConsultStaffSchedules = () => {
       ),
     },
     {
-      title: 'Horario',
-      key: 'schedule',
+      title: 'Plantilla de Horario',
+      key: 'template',
       render: (_, record) => (
         <Space direction="vertical" size={0}>
-          {record.schedule_day && (
+          {record.schedule_template && (
             <>
-              <span>
-                {record.schedule_day.day_of_week
-                  ? DAY_OF_WEEK_MAP[record.schedule_day.day_of_week]
-                  : 'Flexible'}
-              </span>
-              <span style={{ fontSize: 12, color: '#666' }}>
-                {record.schedule_day.start_time} -{' '}
-                {record.schedule_day.end_time}
+              <Tag color="cyan">{record.schedule_template.name}</Tag>
+              <span style={{ fontSize: 11, color: '#666' }}>
+                {record.schedule_template.schedule_days?.length || 0} día(s)
+                configurado(s)
               </span>
             </>
           )}
-          {record.schedule_day?.schedule_template && (
-            <Tag color="cyan" style={{ fontSize: 11 }}>
-              {record.schedule_day.schedule_template.name}
-            </Tag>
-          )}
         </Space>
       ),
+    },
+    {
+      title: 'Días Asignados',
+      key: 'days',
+      render: (_, record) => {
+        // Asignación específica
+        if (record.specific_date) {
+          return (
+            <Tooltip title="Asignación puntual">
+              <Tag color="orange" icon={<CalendarOutlined />}>
+                {dayjs(record.specific_date).format('DD/MM/YYYY')}
+              </Tag>
+            </Tooltip>
+          )
+        }
+
+        // Asignación recurrente
+        if (!record.selected_days || record.selected_days.length === 0) {
+          return <Tag color="purple">Todos los días del template</Tag>
+        }
+
+        return (
+          <Space wrap size="small">
+            {record.selected_days.map((day) => (
+              <Tag key={day} color="blue" style={{ margin: 2 }}>
+                {DAY_OF_WEEK_MAP[day]}
+              </Tag>
+            ))}
+          </Space>
+        )
+      },
+    },
+    {
+      title: 'Horario',
+      key: 'schedule',
+      render: (_, record) => {
+        // Si es asignación específica
+        if (
+          record.specific_date &&
+          record.specific_start_time &&
+          record.specific_end_time
+        ) {
+          return (
+            <Space direction="vertical" size={0}>
+              <span style={{ fontSize: 12 }}>
+                <ClockCircleOutlined /> {record.specific_start_time} -{' '}
+                {record.specific_end_time}
+              </span>
+            </Space>
+          )
+        }
+
+        // Si es recurrente, mostrar ejemplo del primer día
+        const firstDay = record.schedule_template?.schedule_days?.[0]
+        if (firstDay) {
+          return (
+            <Tooltip title="Ver template completo para todos los horarios">
+              <Space direction="vertical" size={0}>
+                <span style={{ fontSize: 12 }}>
+                  <ClockCircleOutlined /> {firstDay.start_time} -{' '}
+                  {firstDay.end_time}
+                </span>
+                {record.schedule_template?.schedule_days &&
+                  record.schedule_template.schedule_days.length > 1 && (
+                    <span style={{ fontSize: 11, color: '#999' }}>
+                      +{record.schedule_template.schedule_days.length - 1} más
+                    </span>
+                  )}
+              </Space>
+            </Tooltip>
+          )
+        }
+
+        return <span style={{ color: '#999' }}>-</span>
+      },
+    },
+    {
+      title: 'Vigencia',
+      key: 'validity',
+      render: (_, record) => {
+        if (record.specific_date) {
+          return (
+            <Tag color="orange">
+              Solo {dayjs(record.specific_date).format('DD/MM/YYYY')}
+            </Tag>
+          )
+        }
+
+        const hasStart = record.start_date
+        const hasEnd = record.end_date
+
+        if (!hasStart && !hasEnd) {
+          return <Tag color="green">Sin límite</Tag>
+        }
+
+        return (
+          <Space direction="vertical" size={0}>
+            {hasStart && (
+              <span style={{ fontSize: 11 }}>
+                Desde: {dayjs(record.start_date).format('DD/MM/YYYY')}
+              </span>
+            )}
+            {hasEnd && (
+              <span style={{ fontSize: 11 }}>
+                Hasta: {dayjs(record.end_date).format('DD/MM/YYYY')}
+              </span>
+            )}
+          </Space>
+        )
+      },
     },
     {
       title: 'Cubículo',
@@ -134,26 +240,6 @@ export const ConsultStaffSchedules = () => {
           </Tooltip>
         ) : (
           <Tag>Sin cubículo</Tag>
-        ),
-    },
-    {
-      title: 'Tipo',
-      key: 'type',
-      render: (_, record) =>
-        record.assignment_date ? (
-          <Space direction="vertical" size={0}>
-            <Tag color="orange">Específico</Tag>
-            <span style={{ fontSize: 11 }}>
-              {dayjs(record.assignment_date).format('DD/MM/YYYY')}
-            </span>
-            {record.end_date && (
-              <span style={{ fontSize: 11 }}>
-                hasta {dayjs(record.end_date).format('DD/MM/YYYY')}
-              </span>
-            )}
-          </Space>
-        ) : (
-          <Tag color="purple">Recurrente</Tag>
         ),
     },
     {
@@ -222,10 +308,7 @@ export const ConsultStaffSchedules = () => {
   ]
 
   const handleFilterChange = (key: keyof StaffScheduleFilters, value: any) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
+    setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
   const clearFilters = () => {
@@ -265,7 +348,7 @@ export const ConsultStaffSchedules = () => {
                 >
                   {staffList.map((staff) => (
                     <Option key={staff.id} value={staff.id!}>
-                      {`${staff.first_name} ${staff.last_name}`}
+                      {`${staff.firstname} ${staff.lastname}`}
                     </Option>
                   ))}
                 </Select>
@@ -332,7 +415,7 @@ export const ConsultStaffSchedules = () => {
               loading={isLoading}
               rowKey="id"
               pagination={pagination}
-              scroll={{ x: 1200 }}
+              scroll={{ x: 1500 }}
             />
           </Card>
         </Col>

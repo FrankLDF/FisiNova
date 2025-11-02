@@ -42,7 +42,7 @@ class ConsultationService {
   }
 
   async getMedicalRecord(appointmentId: number) {
-    const res = await serverCore.get(`/appointments/${appointmentId}/medical-record`)
+    const res = await serverCore.get(`/medical-records/appointment/${appointmentId}`)
     return res.data
   }
 

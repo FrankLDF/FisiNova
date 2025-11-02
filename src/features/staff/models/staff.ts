@@ -2,15 +2,15 @@
 
 export interface Staff {
   id?: number
-  firstname: string // ✅ CAMBIO: era first_name
-  lastname: string // ✅ CAMBIO: era last_name
+  firstname: string
+  lastname: string
   email?: string
   phone?: string
   cellphone?: string
   dni?: string
   address?: string
   position_id: number
-  active?: boolean // ✅ CAMBIO: era is_active
+  active?: boolean
   created_at?: string
   updated_at?: string
 
@@ -25,23 +25,28 @@ export interface Staff {
 
 export interface StaffSchedule {
   id?: number
-  staff_id: number // ✅ Apunta a employees.id
-  schedule_day_id: number
+  staff_id: number
+  schedule_template_id: number // ✅ CAMBIO: Ahora apunta al template completo
+  selected_days?: number[] | null // ✅ NUEVO: [1,2,3] para Lun,Mar,Mie. null=todos
   cubicle_id?: number
-  assignment_date?: string
+  start_date?: string // ✅ RENOMBRADO: Fecha inicio de vigencia
   end_date?: string
+  specific_date?: string // ✅ NUEVO: Para asignaciones puntuales
+  specific_start_time?: string // ✅ NUEVO: Hora inicio (solo si specific_date)
+  specific_end_time?: string // ✅ NUEVO: Hora fin (solo si specific_date)
   is_override?: boolean
-  original_staff_id?: number // ✅ Apunta a employees.id
+  original_staff_id?: number
   status?: 'active' | 'cancelled' | 'completed'
   notes?: string
   created_at?: string
   updated_at?: string
 
-  staff?: Staff // ✅ Devuelve Employee (pero usamos interface Staff)
-  schedule_day?: ScheduleDay
+  staff?: Staff
+  schedule_template?: ScheduleTemplate // ✅ CAMBIO: Ahora trae el template completo
   cubicle?: Cubicle
-  original_staff?: Staff // ✅ Devuelve Employee
+  original_staff?: Staff
 }
+
 export interface ScheduleTemplate {
   id?: number
   name: string
@@ -77,7 +82,6 @@ export interface Cubicle {
   updated_at?: string
 }
 
-// ✅ CAMBIO: CreateStaffRequest usa firstname/lastname/active
 export interface CreateStaffRequest {
   firstname: string
   lastname: string
@@ -102,13 +106,17 @@ export interface CreateScheduleTemplateRequest {
 }
 
 export interface CreateStaffScheduleRequest {
-  staff_id: number // ✅ Se envía a employees
-  schedule_day_id: number
+  staff_id: number
+  schedule_template_id: number // ✅ CAMBIO: Template completo
+  selected_days?: number[] | null // ✅ NUEVO: Días específicos (opcional)
   cubicle_id?: number
-  assignment_date?: string
+  start_date?: string // ✅ RENOMBRADO: Inicio de vigencia
   end_date?: string
+  specific_date?: string // ✅ NUEVO: Fecha puntual
+  specific_start_time?: string // ✅ NUEVO: Hora inicio puntual
+  specific_end_time?: string // ✅ NUEVO: Hora fin puntual
   is_override?: boolean
-  original_staff_id?: number // ✅ Se envía a employees
+  original_staff_id?: number
   status?: string
   notes?: string
 }

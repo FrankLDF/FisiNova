@@ -189,6 +189,7 @@ export const ConsultAppointments = () => {
       const record = await consultationService.getMedicalRecord(
         appointment.id!
       );
+      console.log(record?.data);
       setMedicalRecord(record?.data);
       setSelectedAppointment(appointment);
       setAuthorizeTherapyModalOpen(true);

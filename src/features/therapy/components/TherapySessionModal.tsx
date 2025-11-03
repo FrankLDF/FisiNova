@@ -1,291 +1,276 @@
 // src/features/therapy/components/TherapySessionModal.tsx
-import React from "react";
-import {
-  Modal,
-  Form,
-  Card,
-  Space,
-  Typography,
-  Row,
-  Col,
-  Rate,
-  Slider,
-  Select,
-  Tag,
-} from "antd";
-import {
-  CheckCircleOutlined,
-  UserOutlined,
-  HeartOutlined,
-  ThunderboltOutlined,
-  SmileOutlined,
-} from "@ant-design/icons";
+import { Modal, Form, Steps, Card, Row, Col, Select, InputNumber } from "antd";
+import { useState, useEffect } from "react";
 import { CustomFormItem } from "../../../components/form/CustomFormItem";
 import { CustomInput } from "../../../components/form/CustomInput";
 import { CustomButton } from "../../../components/Button/CustomButton";
+import therapyService from "../services/therapy";
+import { showNotification } from "../../../utils/showNotification";
 
-const { Title, Text } = Typography;
 const { TextArea } = CustomInput;
 const { Option } = Select;
 
 interface TherapySessionModalProps {
   open: boolean;
   onClose: () => void;
-  onComplete: (data: any) => void;
+  onSuccess: () => void;
   therapy: any;
 }
 
-export const TherapySessionModal: React.FC<TherapySessionModalProps> = ({
+export const TherapySessionModal = ({
   open,
   onClose,
-  onComplete,
+  onSuccess,
   therapy,
-}) => {
+}: TherapySessionModalProps) => {
   const [form] = Form.useForm();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [therapyRecord, setTherapyRecord] = useState<any>(null);
 
-  const handleSubmit = (values: any) => {
-    console.log("📝 Datos de sesión:", values);
-    onComplete({
-      therapy_id: therapy?.id,
-      ...values,
-    });
-    form.resetFields();
+  useEffect(() => {
+    if (open && therapy) {
+      // Resetear o cargar datos existentes
+      if (therapy.therapy_record) {
+        setTherapyRecord(therapy.therapy_record);
+        setCurrentStep(therapy.therapy_record.completed ? 2 : 1);
+        form.setFieldsValue({
+          initial_patient_state: therapy.therapy_record.initial_patient_state,
+          initial_observations: therapy.therapy_record.initial_observations,
+          procedure_ids: therapy.therapy_record.procedure_ids,
+          procedure_notes: therapy.therapy_record.procedure_notes,
+          intensity: therapy.therapy_record.intensity,
+        });
+      } else {
+        setCurrentStep(0);
+        form.resetFields();
+      }
+    }
+  }, [open, therapy, form]);
+
+  const handleStartSession = async () => {
+    try {
+      setLoading(true);
+      const values = await form.validateFields([
+        "initial_patient_state",
+        "initial_observations",
+      ]);
+
+      const response = await therapyService.startSession(therapy.id, {
+        initial_patient_state: values.initial_patient_state,
+        initial_observations: values.initial_observations,
+      });
+
+      setTherapyRecord(response.data.therapy_record);
+      setCurrentStep(1);
+
+      showNotification({
+        type: "success",
+        message: "Sesión iniciada",
+      });
+    } catch (error: any) {
+      showNotification({
+        type: "error",
+        message: "Error al iniciar sesión",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!therapy) return null;
+  const handleCompleteSession = async () => {
+    try {
+      setLoading(true);
+      const values = await form.validateFields([
+        "procedure_ids",
+        "procedure_notes",
+        "final_patient_state",
+        "final_observations",
+        "next_session_recommendation",
+        "intensity",
+      ]);
 
-  const isCompleted = therapy.status === "completed";
+      await therapyService.completeSession(therapy.id, values);
+
+      showNotification({
+        type: "success",
+        message: "Sesión completada",
+      });
+
+      onSuccess();
+      onClose();
+    } catch (error: any) {
+      showNotification({
+        type: "error",
+        message: "Error al completar sesión",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const steps = [
+    { title: "Inicio", description: "Estado inicial" },
+    { title: "Procedimientos", description: "Aplicar tratamiento" },
+    { title: "Cierre", description: "Estado final" },
+  ];
 
   return (
     <Modal
-      title={
-        <Space>
-          <HeartOutlined style={{ color: "#1890ff" }} />
-          <span>
-            {isCompleted ? "Detalles de" : "Registrar"} Sesión de Terapia
-          </span>
-        </Space>
-      }
       open={open}
       onCancel={onClose}
+      title={`Sesión de Terapia - ${therapy?.patient?.name || ""}`}
       width={800}
       footer={null}
-      destroyOnClose
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        {/* Info del paciente */}
-        <Card
-          size="small"
-          style={{ marginBottom: 16, background: "#f6ffed" }}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Space direction="vertical" size={0}>
-                <Text type="secondary">Paciente</Text>
-                <Text strong style={{ fontSize: 16 }}>
-                  <UserOutlined /> {therapy.patient.name}
-                </Text>
-              </Space>
-            </Col>
-            <Col span={12}>
-              <Space direction="vertical" size={0}>
-                <Text type="secondary">Sesión</Text>
-                <Tag color="blue" style={{ fontSize: 14 }}>
-                  {therapy.sessionNumber} de {therapy.totalSessions}
-                </Tag>
-              </Space>
-            </Col>
-          </Row>
-          <Row gutter={16} style={{ marginTop: 8 }}>
-            <Col span={12}>
-              <Text type="secondary">Procedimiento: </Text>
-              <Text strong>{therapy.procedure}</Text>
-            </Col>
-            <Col span={12}>
-              <Text type="secondary">Autorización: </Text>
-              <Text strong>{therapy.authorizationNumber}</Text>
-            </Col>
-          </Row>
-        </Card>
+      <Steps current={currentStep} items={steps} style={{ marginBottom: 24 }} />
 
-        {!isCompleted && (
-          <>
-            {/* Evaluación inicial */}
-            <Card
-              type="inner"
-              title="Evaluación Inicial"
-              style={{ marginBottom: 16 }}
+      <Form form={form} layout="vertical">
+        {/* PASO 0: INICIO */}
+        {currentStep === 0 && (
+          <Card title="Estado Inicial del Paciente">
+            <CustomFormItem
+              label="Estado Inicial del Paciente"
+              name="initial_patient_state"
+              required
             >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <CustomFormItem label="Nivel de Dolor (0-10)" name="pain_level">
-                    <Slider
-                      min={0}
-                      max={10}
-                      marks={{
-                        0: "Sin dolor",
-                        5: "Moderado",
-                        10: "Severo",
-                      }}
-                    />
-                  </CustomFormItem>
-                </Col>
-                <Col span={12}>
-                  <CustomFormItem
-                    label="Movilidad del Paciente"
-                    name="mobility_level"
-                  >
-                    <Select placeholder="Seleccionar nivel">
-                      <Option value="excellent">Excelente</Option>
-                      <Option value="good">Buena</Option>
-                      <Option value="fair">Regular</Option>
-                      <Option value="poor">Limitada</Option>
-                    </Select>
-                  </CustomFormItem>
-                </Col>
-              </Row>
-            </Card>
+              <TextArea
+                rows={4}
+                placeholder="Describa cómo llega el paciente: dolor, movilidad, estado general..."
+              />
+            </CustomFormItem>
 
-            {/* Procedimiento realizado */}
-            <Card
-              type="inner"
-              title="Procedimiento Realizado"
-              style={{ marginBottom: 16 }}
+            <CustomFormItem
+              label="Observaciones Iniciales"
+              name="initial_observations"
             >
-              <CustomFormItem
-                label="Técnicas Aplicadas"
-                name="techniques"
-                required
-              >
-                <Select
-                  mode="multiple"
-                  placeholder="Seleccionar técnicas..."
-                >
-                  <Option value="massage">Masaje Terapéutico</Option>
-                  <Option value="stretching">Estiramientos</Option>
-                  <Option value="exercises">Ejercicios de Fortalecimiento</Option>
-                  <Option value="heat_therapy">Termoterapia</Option>
-                  <Option value="cold_therapy">Crioterapia</Option>
-                  <Option value="electrotherapy">Electroterapia</Option>
-                  <Option value="ultrasound">Ultrasonido</Option>
-                </Select>
-              </CustomFormItem>
+              <TextArea
+                rows={3}
+                placeholder="Observaciones adicionales, precauciones, etc..."
+              />
+            </CustomFormItem>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <CustomFormItem
-                    label="Duración Efectiva (minutos)"
-                    name="duration"
-                  >
-                    <Select placeholder="Duración">
-                      <Option value={30}>30 minutos</Option>
-                      <Option value={45}>45 minutos</Option>
-                      <Option value={60}>60 minutos</Option>
-                    </Select>
-                  </CustomFormItem>
-                </Col>
-                <Col span={12}>
-                  <CustomFormItem label="Intensidad" name="intensity">
-                    <Select placeholder="Seleccionar intensidad">
-                      <Option value="low">Baja</Option>
-                      <Option value="moderate">Moderada</Option>
-                      <Option value="high">Alta</Option>
-                    </Select>
-                  </CustomFormItem>
-                </Col>
-              </Row>
-
-              <CustomFormItem
-                label="Observaciones del Procedimiento"
-                name="procedure_notes"
-              >
-                <TextArea
-                  rows={3}
-                  placeholder="Describa cómo respondió el paciente, ejercicios realizados, etc."
-                />
-              </CustomFormItem>
-            </Card>
-
-            {/* Evaluación post-sesión */}
-            <Card
-              type="inner"
-              title="Evaluación Post-Sesión"
-              style={{ marginBottom: 16 }}
+            <CustomButton
+              type="primary"
+              onClick={handleStartSession}
+              loading={loading}
+              block
             >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <CustomFormItem
-                    label="Progreso del Paciente"
-                    name="progress"
-                  >
-                    <Rate
-                      character={<SmileOutlined />}
-                      style={{ fontSize: 28 }}
-                    />
-                  </CustomFormItem>
-                </Col>
-                <Col span={12}>
-                  <CustomFormItem
-                    label="Nivel de Dolor Post-Sesión"
-                    name="post_pain_level"
-                  >
-                    <Slider
-                      min={0}
-                      max={10}
-                      marks={{
-                        0: "Sin dolor",
-                        5: "Moderado",
-                        10: "Severo",
-                      }}
-                    />
-                  </CustomFormItem>
-                </Col>
-              </Row>
-
-              <CustomFormItem
-                label="Recomendaciones para el Paciente"
-                name="recommendations"
-              >
-                <TextArea
-                  rows={2}
-                  placeholder="Ejercicios en casa, precauciones, etc."
-                />
-              </CustomFormItem>
-            </Card>
-
-            {/* Próxima sesión */}
-            <Card
-              type="inner"
-              title="Próxima Sesión"
-              style={{ marginBottom: 16, background: "#fff7e6" }}
-            >
-              <CustomFormItem
-                label="Indicaciones para la Próxima Sesión"
-                name="next_session_notes"
-              >
-                <TextArea
-                  rows={2}
-                  placeholder="Áreas a trabajar, objetivos, etc."
-                />
-              </CustomFormItem>
-            </Card>
-
-            <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-              <CustomButton onClick={onClose}>Cancelar</CustomButton>
-              <CustomButton
-                type="primary"
-                htmlType="submit"
-                icon={<CheckCircleOutlined />}
-              >
-                Completar Sesión
-              </CustomButton>
-            </Space>
-          </>
+              Iniciar Sesión
+            </CustomButton>
+          </Card>
         )}
 
-        {isCompleted && (
-          <Card>
-            <Text>Esta sesión ya fue completada.</Text>
+        {/* PASO 1: PROCEDIMIENTOS */}
+        {currentStep === 1 && (
+          <Card title="Aplicar Tratamiento">
+            <CustomFormItem
+              label="Procedimientos Aplicados"
+              name="procedure_ids"
+              tooltip="Seleccione los procedimientos que aplicará en esta sesión"
+            >
+              <Select
+                mode="multiple"
+                placeholder="Seleccionar procedimientos..."
+                showSearch
+                optionFilterProp="children"
+              >
+                <Option value={1}>Terapia Física</Option>
+                <Option value={2}>Masaje Terapéutico</Option>
+                <Option value={3}>Electroterapia</Option>
+                <Option value={4}>Ultrasonido</Option>
+                <Option value={5}>Ejercicios de Fortalecimiento</Option>
+                <Option value={6}>Termoterapia</Option>
+                <Option value={7}>Crioterapia</Option>
+              </Select>
+            </CustomFormItem>
+
+            <Row gutter={16}>
+              <Col span={24}>
+                <CustomFormItem
+                  label="Intensidad del Tratamiento"
+                  name="intensity"
+                >
+                  <Select placeholder="Seleccionar intensidad">
+                    <Option value="low">Baja</Option>
+                    <Option value="moderate">Moderada</Option>
+                    <Option value="high">Alta</Option>
+                  </Select>
+                </CustomFormItem>
+              </Col>
+            </Row>
+
+            <CustomFormItem
+              label="Observaciones del Procedimiento"
+              name="procedure_notes"
+            >
+              <TextArea
+                rows={3}
+                placeholder="Describa cómo respondió el paciente, ejercicios realizados, etc..."
+              />
+            </CustomFormItem>
+
+            <CustomButton
+              type="primary"
+              onClick={() => setCurrentStep(2)}
+              block
+            >
+              Continuar a Cierre
+            </CustomButton>
+          </Card>
+        )}
+
+        {/* PASO 2: CIERRE */}
+        {currentStep === 2 && (
+          <Card title="Finalizar Sesión">
+            <CustomFormItem
+              label="Estado Final del Paciente"
+              name="final_patient_state"
+              required
+            >
+              <TextArea
+                rows={4}
+                placeholder="Describa cómo termina el paciente: mejora en dolor, movilidad, estado general..."
+              />
+            </CustomFormItem>
+
+            <CustomFormItem
+              label="Observaciones Finales"
+              name="final_observations"
+            >
+              <TextArea
+                rows={3}
+                placeholder="Observaciones adicionales sobre la sesión..."
+              />
+            </CustomFormItem>
+
+            <CustomFormItem
+              label="Recomendación para Siguiente Sesión"
+              name="next_session_recommendation"
+            >
+              <TextArea
+                rows={3}
+                placeholder="Indique qué se debe enfocar en la próxima sesión..."
+              />
+            </CustomFormItem>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <CustomButton onClick={() => setCurrentStep(1)} block>
+                  Volver
+                </CustomButton>
+              </Col>
+              <Col span={12}>
+                <CustomButton
+                  type="primary"
+                  onClick={handleCompleteSession}
+                  loading={loading}
+                  block
+                >
+                  Completar Sesión
+                </CustomButton>
+              </Col>
+            </Row>
           </Card>
         )}
       </Form>

@@ -58,8 +58,6 @@ const AppRoutes = () => {
     dashboardPath = PATH_CONSULT_APPOINTMENTS;
   }
 
-  if (!user) return <></>;
-
   return (
     <Routes>
       {/* ========== RUTAS PÚBLICAS ========== */}

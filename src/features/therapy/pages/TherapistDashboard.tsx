@@ -1,15 +1,5 @@
 // src/features/therapy/pages/TherapistDashboard.tsx
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Table,
-  Tag,
-  Tabs,
-  Space,
-  Badge,
-} from "antd";
+import { Card, Row, Col, Statistic, Table, Tag, Tabs, Space, Badge, DatePicker } from "antd";
 import {
   ClockCircleOutlined,
   CheckCircleOutlined,
@@ -18,142 +8,83 @@ import {
   EyeOutlined,
   FireOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CustomButton } from "../../../components/Button/CustomButton";
 import type { ColumnsType } from "antd/es/table";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { TherapySessionModal } from "../components/TherapySessionModal";
-import { isToday } from "../../../utils/dateHelpers";
-
-// Mock Data
-const generateMockTherapies = () => {
-  const statuses = ["pending", "in_progress", "completed"];
-  const patients = [
-    {
-      id: 1,
-      name: "María González",
-      dni: "001-1234567-8",
-      phone: "809-555-0101",
-    },
-    { id: 2, name: "Juan Pérez", dni: "001-2345678-9", phone: "809-555-0102" },
-    {
-      id: 3,
-      name: "Ana Martínez",
-      dni: "001-3456789-0",
-      phone: "809-555-0103",
-    },
-    {
-      id: 4,
-      name: "Carlos Rodríguez",
-      dni: "001-4567890-1",
-      phone: "809-555-0104",
-    },
-    {
-      id: 5,
-      name: "Laura Fernández",
-      dni: "001-5678901-2",
-      phone: "809-555-0105",
-    },
-  ];
-
-  const procedures = [
-    "Terapia Física",
-    "Rehabilitación Muscular",
-    "Terapia Ocupacional",
-    "Masaje Terapéutico",
-  ];
-
-  return Array.from({ length: 15 }, (_, i) => ({
-    id: i + 1,
-    patient: patients[i % patients.length],
-    date: dayjs()
-      .add(Math.floor(i / 3) - 1, "days")
-      .format("YYYY-MM-DD"),
-    startTime: `${8 + (i % 6)}:00`,
-    endTime: `${9 + (i % 6)}:00`,
-    status: statuses[Math.floor(i / 5) % statuses.length],
-    procedure: procedures[i % procedures.length],
-    sessionNumber: (i % 10) + 1,
-    totalSessions: 10,
-    authorizationNumber: `AUTH-2025-${String(i + 100).padStart(3, "0")}`,
-    notes: i % 3 === 0 ? "Paciente con progreso favorable" : "",
-  }));
-};
-
-interface Therapy {
-  id: number;
-  patient: {
-    id: number;
-    name: string;
-    dni: string;
-    phone: string;
-  };
-  date: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-  procedure: string;
-  sessionNumber: number;
-  totalSessions: number;
-  authorizationNumber: string;
-  notes?: string;
-}
+import therapyService from "../services/therapy";
+import { showNotification } from "../../../utils/showNotification";
 
 export const TherapistDashboard = () => {
-  const [therapies] = useState<Therapy[]>(generateMockTherapies());
-  const [selectedTherapy, setSelectedTherapy] = useState<Therapy | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+  const [therapies, setTherapies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedTherapy, setSelectedTherapy] = useState<any | null>(null);
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
 
+  useEffect(() => {
+    loadTherapies();
+  }, [selectedDate]);
+
+  const loadTherapies = async () => {
+    try {
+      setLoading(true);
+      const response = await therapyService.getMyTherapies(
+        selectedDate.format("YYYY-MM-DD")
+      );
+      setTherapies(response?.data || []);
+    } catch (error: any) {
+      showNotification({
+        type: "error",
+        message: "Error al cargar terapias",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filtrar terapias por estado
-  const pendingTherapies = therapies.filter((t) => t.status === "pending");
-  const inProgressTherapies = therapies.filter(
-    (t) => t.status === "in_progress"
-  );
-  const completedTherapies = therapies.filter(
-    (t) => t.status === "completed" && isToday(t.date)
-  );
+  const pendingTherapies = therapies.filter((t) => t.status === "confirmada");
+  const inProgressTherapies = therapies.filter((t) => t.status === "en_atencion");
+  const completedTherapies = therapies.filter((t) => t.status === "completada");
 
   // Estadísticas
   const stats = {
     pending: pendingTherapies.length,
     inProgress: inProgressTherapies.length,
     completedToday: completedTherapies.length,
-    totalToday: therapies.filter((t) => isToday(t.date)).length,
+    totalToday: therapies.length,
   };
 
-  const handleStartTherapy = (therapy: Therapy) => {
-    console.log("🎯 Iniciando terapia:", therapy);
-    // Simular inicio de terapia
-    therapy.status = "in_progress";
+  const handleStartTherapy = (therapy: any) => {
     setSelectedTherapy(therapy);
     setSessionModalOpen(true);
   };
 
-  const handleViewTherapy = (therapy: Therapy) => {
-    console.log("👁️ Ver terapia:", therapy);
+  const handleViewTherapy = (therapy: any) => {
     setSelectedTherapy(therapy);
     setSessionModalOpen(true);
   };
 
-  const handleCompleteSession = (data: any) => {
-    console.log("✅ Sesión completada:", data);
-    if (selectedTherapy) {
-      selectedTherapy.status = "completed";
-    }
+  const handleSessionSuccess = () => {
     setSessionModalOpen(false);
     setSelectedTherapy(null);
+    loadTherapies(); // Recargar lista
   };
 
-  const columns: ColumnsType<Therapy> = [
+  const columns: ColumnsType<any> = [
     {
       title: "Hora",
       width: 100,
       render: (_, record) => (
         <Space direction="vertical" size={0}>
           <Tag color="blue" icon={<ClockCircleOutlined />}>
-            {record.startTime}
+            {dayjs(record.start_time, "HH:mm:ss").format("HH:mm")}
           </Tag>
-          <span style={{ fontSize: 11, color: "#999" }}>{record.endTime}</span>
+          <span style={{ fontSize: 11, color: "#999" }}>
+            {dayjs(record.end_time, "HH:mm:ss").format("HH:mm")}
+          </span>
         </Space>
       ),
     },
@@ -161,60 +92,74 @@ export const TherapistDashboard = () => {
       title: "Paciente",
       render: (_, record) => (
         <Space direction="vertical" size={0}>
-          <span style={{ fontWeight: 500 }}>{record.patient.name}</span>
-          {record.patient.dni && (
+          <span style={{ fontWeight: 500 }}>
+            {record.patient?.firstname} {record.patient?.lastname}
+          </span>
+          {record.patient?.dni && (
             <span style={{ fontSize: 12, color: "#666" }}>
-              {record.patient.dni}
+              {record.patient?.dni}
             </span>
           )}
         </Space>
       ),
     },
     {
-      title: "Procedimiento",
-      dataIndex: "procedure",
-      render: (procedure) => <Tag color="cyan">{procedure}</Tag>,
-    },
-    {
       title: "Sesión",
       render: (_, record) => (
-        <Space>
-          <Badge
-            count={`${record.sessionNumber}/${record.totalSessions}`}
-            style={{ backgroundColor: "#52c41a" }}
-          />
-        </Space>
+        <Badge
+          count={`${record.session_number}/${record.total_sessions}`}
+          style={{ backgroundColor: "#52c41a" }}
+        />
       ),
     },
     {
       title: "Autorización",
-      dataIndex: "authorizationNumber",
+      dataIndex: "authorization_number",
       render: (auth) => (
         <span style={{ fontSize: 11, color: "#666" }}>{auth}</span>
       ),
+    },
+    {
+      title: "Estado",
+      dataIndex: "status",
+      render: (status) => {
+        const statusMap: Record<string, { color: string; text: string }> = {
+          confirmada: { color: "blue", text: "Pendiente" },
+          en_atencion: { color: "processing", text: "En Progreso" },
+          completada: { color: "success", text: "Completada" },
+        };
+        const config = statusMap[status] || { color: "default", text: status };
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
     },
     {
       title: "Acciones",
       width: 150,
       render: (_, record) => (
         <Space>
-          {record.status === "completed" ? (
+          {record.status === "completada" ? (
             <CustomButton
-              type="link"
-              size="small"
+              type="text"
               icon={<EyeOutlined />}
               onClick={() => handleViewTherapy(record)}
             >
               Ver
             </CustomButton>
+          ) : record.status === "en_atencion" ? (
+            <CustomButton
+              type="primary"
+              icon={<FireOutlined />}
+              onClick={() => handleViewTherapy(record)}
+            >
+              Continuar
+            </CustomButton>
           ) : (
             <CustomButton
               type="primary"
-              size="small"
               icon={<PlayCircleOutlined />}
               onClick={() => handleStartTherapy(record)}
             >
-              {record.status === "in_progress" ? "Continuar" : "Iniciar"}
+              Iniciar
             </CustomButton>
           )}
         </Space>
@@ -223,16 +168,44 @@ export const TherapistDashboard = () => {
   ];
 
   return (
-    <div style={{ padding: "0 16px" }}>
-      <Row gutter={[16, 16]}>
-        {/* Estadísticas */}
+    <>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col span={24}>
+          <Card>
+            <Row justify="space-between" align="middle">
+              <Col>
+                <h2 style={{ margin: 0 }}>Dashboard del Terapista</h2>
+              </Col>
+              <Col>
+                <Space>
+                  <DatePicker
+                    value={selectedDate}
+                    onChange={(date) => setSelectedDate(date || dayjs())}
+                    format="DD/MM/YYYY"
+                  />
+                  <CustomButton
+                    type="primary"
+                    onClick={loadTherapies}
+                    loading={loading}
+                  >
+                    Actualizar
+                  </CustomButton>
+                </Space>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Estadísticas */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
               title="Pendientes"
               value={stats.pending}
               prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: "#faad14" }}
+              valueStyle={{ color: "#1890ff" }}
             />
           </Card>
         </Col>
@@ -242,7 +215,7 @@ export const TherapistDashboard = () => {
               title="En Progreso"
               value={stats.inProgress}
               prefix={<FireOutlined />}
-              valueStyle={{ color: "#1890ff" }}
+              valueStyle={{ color: "#faad14" }}
             />
           </Card>
         </Col>
@@ -259,96 +232,85 @@ export const TherapistDashboard = () => {
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
-              title="Total Hoy"
+              title="Total del Día"
               value={stats.totalToday}
               prefix={<UserOutlined />}
-              valueStyle={{ color: "#722ed1" }}
-            />
-          </Card>
-        </Col>
-
-        {/* Tablas con tabs */}
-        <Col span={24}>
-          <Card>
-            <Tabs
-              defaultActiveKey="pending"
-              items={[
-                {
-                  key: "pending",
-                  label: (
-                    <span>
-                      <Badge count={pendingTherapies.length} offset={[10, 0]}>
-                        Pendientes
-                      </Badge>
-                    </span>
-                  ),
-                  children: (
-                    <Table
-                      columns={columns}
-                      dataSource={pendingTherapies}
-                      rowKey="id"
-                      size="small"
-                      pagination={{ pageSize: 5 }}
-                    />
-                  ),
-                },
-                {
-                  key: "progress",
-                  label: (
-                    <span>
-                      <Badge
-                        count={inProgressTherapies.length}
-                        offset={[10, 0]}
-                      >
-                        En Progreso
-                      </Badge>
-                    </span>
-                  ),
-                  children: (
-                    <Table
-                      columns={columns}
-                      dataSource={inProgressTherapies}
-                      rowKey="id"
-                      size="small"
-                      pagination={{ pageSize: 5 }}
-                    />
-                  ),
-                },
-                {
-                  key: "completed",
-                  label: (
-                    <span>
-                      <Badge count={completedTherapies.length} offset={[10, 0]}>
-                        Completadas
-                      </Badge>
-                    </span>
-                  ),
-                  children: (
-                    <Table
-                      columns={columns}
-                      dataSource={completedTherapies}
-                      rowKey="id"
-                      size="small"
-                      pagination={{ pageSize: 10 }}
-                    />
-                  ),
-                },
-              ]}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Modal de sesión de terapia */}
+      {/* Tabla de terapias */}
+      <Card>
+        <Tabs
+          defaultActiveKey="all"
+          items={[
+            {
+              key: "all",
+              label: `Todas (${therapies.length})`,
+              children: (
+                <Table
+                  columns={columns}
+                  dataSource={therapies}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={false}
+                />
+              ),
+            },
+            {
+              key: "pending",
+              label: `Pendientes (${stats.pending})`,
+              children: (
+                <Table
+                  columns={columns}
+                  dataSource={pendingTherapies}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={false}
+                />
+              ),
+            },
+            {
+              key: "inProgress",
+              label: `En Progreso (${stats.inProgress})`,
+              children: (
+                <Table
+                  columns={columns}
+                  dataSource={inProgressTherapies}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={false}
+                />
+              ),
+            },
+            {
+              key: "completed",
+              label: `Completadas (${stats.completedToday})`,
+              children: (
+                <Table
+                  columns={columns}
+                  dataSource={completedTherapies}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={false}
+                />
+              ),
+            },
+          ]}
+        />
+      </Card>
+
+      {/* Modal de sesión */}
       <TherapySessionModal
         open={sessionModalOpen}
         onClose={() => {
           setSessionModalOpen(false);
           setSelectedTherapy(null);
         }}
-        onComplete={handleCompleteSession}
+        onSuccess={handleSessionSuccess}
         therapy={selectedTherapy}
       />
-    </div>
+    </>
   );
 };

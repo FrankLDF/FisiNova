@@ -92,6 +92,10 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   }, [appointment, open, form, medicalRecord]);
 
   useEffect(() => {
+    console.log("medicalRecord", medicalRecord);
+  }, [medicalRecord, currentStep]);
+
+  useEffect(() => {
     if (!open) {
       setCurrentStep(0);
       setSessions([]);
@@ -250,7 +254,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
         <Space>
           <ClockCircleOutlined />
           <Text>
-            {record.startTime.format("HH:mm")} - {record.endTime.format("HH:mm")}
+            {record.startTime.format("HH:mm")} -{" "}
+            {record.endTime.format("HH:mm")}
           </Text>
         </Space>
       ),
@@ -266,9 +271,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
     {
       title: "Estado",
       key: "status",
-      render: (_, record) => (
-        <Tag color="orange">Pendiente</Tag>
-      ),
+      render: (_, record) => <Tag color="orange">Pendiente</Tag>,
     },
     {
       title: "Acciones",
@@ -355,7 +358,9 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                         </Text>
                         <Space>
                           {selectedPatient.dni && (
-                            <Text type="secondary">DNI: {selectedPatient.dni}</Text>
+                            <Text type="secondary">
+                              DNI: {selectedPatient.dni}
+                            </Text>
                           )}
                           {selectedPatient.phone && (
                             <Text type="secondary">
@@ -607,18 +612,26 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                       disabledTime={() => ({
                         disabledHours: () =>
                           sessionStartTime
-                            ? Array.from({ length: sessionStartTime.hour() }, (_, i) => i)
+                            ? Array.from(
+                                { length: sessionStartTime.hour() },
+                                (_, i) => i
+                              )
                             : [],
                       })}
                     />
                   </Col>
 
-                  <Col span={4} style={{ display: "flex", alignItems: "flex-end" }}>
+                  <Col
+                    span={4}
+                    style={{ display: "flex", alignItems: "flex-end" }}
+                  >
                     <CustomButton
                       type="primary"
                       icon={<PlusOutlined />}
                       onClick={addSession}
-                      disabled={!sessionDate || !sessionStartTime || !sessionEndTime}
+                      disabled={
+                        !sessionDate || !sessionStartTime || !sessionEndTime
+                      }
                       block
                     >
                       Agregar
@@ -629,7 +642,11 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
 
               {/* Tabla de sesiones */}
               <Card size="small">
-                <Row align="middle" justify="space-between" style={{ marginBottom: 16 }}>
+                <Row
+                  align="middle"
+                  justify="space-between"
+                  style={{ marginBottom: 16 }}
+                >
                   <Col>
                     <Title level={5} style={{ margin: 0 }}>
                       Sesiones Programadas ({sessions.length})
@@ -655,7 +672,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                   size="small"
                   pagination={false}
                   locale={{
-                    emptyText: "No hay sesiones programadas. Agregue al menos una sesión.",
+                    emptyText:
+                      "No hay sesiones programadas. Agregue al menos una sesión.",
                   }}
                   scroll={{ y: 300 }}
                 />

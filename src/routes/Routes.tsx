@@ -42,6 +42,7 @@ import { useAuth } from '../store/auth/AuthContext'
 import { TherapistDashboard } from '../features/therapy/pages/TherapistDashboard'
 import { InsuranceForm } from '../features/insurances/pages/InsuranceForm'
 import { ConsultInsurances } from '../features/insurances/pages/ConsultInsurances'
+import InsuranceReportsDashboard from '../features/Reports/pages/InsuranceReportsDashboard'
 
 const AppRoutes = () => {
   const { user } = useAuth()
@@ -71,10 +72,7 @@ const AppRoutes = () => {
           </PublicRoutes>
         }
       />
-      <Route
-        path={PATH_INICIAL}
-        element={<Navigate to={PATH_LOGIN} replace />}
-      />
+      <Route path={PATH_INICIAL} element={<Navigate to={PATH_LOGIN} replace />} />
 
       {/* ========== REDIRECCIÓN SEGÚN ROL ========== */}
       <Route
@@ -94,14 +92,7 @@ const AppRoutes = () => {
         path={PATH_CONSULT_APPOINTMENTS}
         element={
           <PrivateRoutes>
-            <RoleProtectedRoute
-              allowedRoles={[
-                Rol.ADMIN,
-                Rol.SECRETARY,
-                Rol.MEDIC,
-                Rol.THERAPIST,
-              ]}
-            >
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.SECRETARY, Rol.MEDIC, Rol.THERAPIST]}>
               <ConsultAppointments />
             </RoleProtectedRoute>
           </PrivateRoutes>
@@ -146,9 +137,7 @@ const AppRoutes = () => {
         path={PATH_CONSULTATIONS}
         element={
           <PrivateRoutes>
-            <RoleProtectedRoute
-              allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}
-            >
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}>
               <MedicDashboard />
             </RoleProtectedRoute>
           </PrivateRoutes>
@@ -159,9 +148,7 @@ const AppRoutes = () => {
         path="/consultation/:id"
         element={
           <PrivateRoutes>
-            <RoleProtectedRoute
-              allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}
-            >
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}>
               <ConsultationForm />
             </RoleProtectedRoute>
           </PrivateRoutes>
@@ -172,9 +159,7 @@ const AppRoutes = () => {
         path="/consultation/:id/view"
         element={
           <PrivateRoutes>
-            <RoleProtectedRoute
-              allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}
-            >
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.MEDIC, Rol.THERAPIST]}>
               <ConsultationForm />
             </RoleProtectedRoute>
           </PrivateRoutes>
@@ -376,6 +361,17 @@ const AppRoutes = () => {
           <PrivateRoutes>
             <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
               <InsuranceForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/reports-dashboard"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.SECRETARY]}>
+              <InsuranceReportsDashboard />
             </RoleProtectedRoute>
           </PrivateRoutes>
         }

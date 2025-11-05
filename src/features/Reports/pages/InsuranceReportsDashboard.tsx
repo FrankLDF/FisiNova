@@ -1,5 +1,5 @@
 // src/features/reports/pages/InsuranceReportsDashboard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import {
   Card,
   Row,
@@ -14,7 +14,7 @@ import {
   Typography,
   Tabs,
   Tag,
-} from 'antd';
+} from 'antd'
 import {
   DollarOutlined,
   FileTextOutlined,
@@ -25,161 +25,179 @@ import {
   FileExcelOutlined,
   SafetyOutlined,
   WarningOutlined,
-} from '@ant-design/icons';
-import { CustomButton } from '../../../components/Button/CustomButton';
-import reportService from '../services/reportService';
-import { showNotification } from '../../../utils/showNotification';
-import dayjs from 'dayjs';
+} from '@ant-design/icons'
+import { CustomButton } from '../../../components/Button/CustomButton'
+import reportService from '../services/reportService'
+import { showNotification } from '../../../utils/showNotification'
+import dayjs from 'dayjs'
 import type {
   Insurance,
   ReportPreviewData,
   ReportStats,
   ReportFilters,
   ReportService,
-} from '../models/report';
+} from '../models/report'
 
-const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
-const { Option } = Select;
+const { Title, Text } = Typography
+const { RangePicker } = DatePicker
+const { Option } = Select
 
 const InsuranceReportsDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'generate' | 'preview'>('generate');
-  const [selectedOption, setSelectedOption] = useState<'insurance' | 'idoppril' | undefined>(undefined);
-  const [selectedInsurance, setSelectedInsurance] = useState<number | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<'generate' | 'preview'>('generate')
+  const [selectedOption, setSelectedOption] = useState<'insurance' | 'idoppril' | undefined>(
+    undefined
+  )
+  const [selectedInsurance, setSelectedInsurance] = useState<number | undefined>(undefined)
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
     dayjs().startOf('month'),
     dayjs().endOf('month'),
-  ]);
-  const [format, setFormat] = useState<'pdf' | 'excel'>('pdf');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [previewData, setPreviewData] = useState<ReportPreviewData | null>(null);
-  const [stats, setStats] = useState<ReportStats | null>(null);
-  const [insurances, setInsurances] = useState<Insurance[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  ])
+  const [format, setFormat] = useState<'pdf' | 'excel'>('pdf')
+  const [loading, setLoading] = useState<boolean>(false)
+  const [previewData, setPreviewData] = useState<ReportPreviewData | null>(null)
+  const [stats, setStats] = useState<ReportStats | null>(null)
+  const [insurances, setInsurances] = useState<Insurance[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadInsurances();
-    loadStats();
-  }, [dateRange]);
+    loadInsurances()
+    loadStats()
+  }, [dateRange])
 
   const loadInsurances = async (): Promise<void> => {
     try {
-      const data = await reportService.getInsurances();
-      setInsurances(Array.isArray(data) ? data : []);
+      const data = await reportService.getInsurances()
+      setInsurances(Array.isArray(data) ? data : [])
     } catch (error: any) {
-      console.error('Error cargando seguros:', error);
+      console.error('Error cargando seguros:', error)
       showNotification({
         type: 'error',
         message: 'Error al cargar los seguros',
-      });
+      })
     }
-  };
+  }
 
   const loadStats = async (): Promise<void> => {
     try {
       const statsData = await reportService.getReportStats({
         start_date: dateRange[0].format('YYYY-MM-DD'),
         end_date: dateRange[1].format('YYYY-MM-DD'),
-      });
-      setStats(statsData);
+      })
+      setStats(statsData)
     } catch (error: any) {
-      console.error('Error cargando estadísticas:', error);
+      console.error('Error cargando estadísticas:', error)
     }
-  };
+  }
 
   const handlePreview = async (): Promise<void> => {
     if (!selectedOption) {
-      setError('Por favor seleccione un seguro o IDOPPRIL');
-      return;
+      setError('Por favor seleccione un seguro o IDOPPRIL')
+      return
     }
 
     if (selectedOption === 'insurance' && !selectedInsurance) {
-      setError('Por favor seleccione un seguro');
-      return;
+      setError('Por favor seleccione un seguro')
+      return
     }
 
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     try {
       const filters: ReportFilters = {
         start_date: dateRange[0].format('YYYY-MM-DD'),
         end_date: dateRange[1].format('YYYY-MM-DD'),
         format: format,
-      };
-
-      if (selectedOption === 'idoppril') {
-        filters.is_idoppril = true;
-      } else {
-        filters.insurance_id = selectedInsurance;
       }
 
-      const data = await reportService.preview(filters);
-      setPreviewData(data);
-      setActiveTab('preview');
-      
-      showNotification({
-        type: 'success',
-        message: 'Vista previa generada exitosamente',
-      });
+      if (selectedOption === 'idoppril') {
+        filters.is_idoppril = true
+      } else {
+        filters.insurance_id = selectedInsurance
+      }
+
+      console.log('Enviando filtros:', filters) // Debug
+
+      const data = await reportService.preview(filters)
+
+      console.log('Datos recibidos:', data) // Debug
+
+      if (!data.services || data.services.length === 0) {
+        showNotification({
+          type: 'warning',
+          message: 'No se encontraron registros para el período seleccionado',
+        })
+        setPreviewData(data) // Mostrar de todas formas
+      } else {
+        setPreviewData(data)
+        showNotification({
+          type: 'success',
+          message: 'Vista previa generada exitosamente',
+        })
+      }
+
+      setActiveTab('preview')
     } catch (error: any) {
-      console.error('Error en vista previa:', error);
-      const errorMsg = error.response?.message || 'Error al generar vista previa';
-      setError(errorMsg);
+      console.error('Error en vista previa:', error)
+      console.error('Response data:', error.response?.data) // Debug adicional
+
+      const errorMsg =
+        error.response?.data?.message || error.message || 'Error al generar vista previa'
+      setError(errorMsg)
       showNotification({
         type: 'error',
         message: errorMsg,
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleDownload = async (): Promise<void> => {
     if (!selectedOption) {
-      setError('Por favor seleccione un seguro o IDOPPRIL');
-      return;
+      setError('Por favor seleccione un seguro o IDOPPRIL')
+      return
     }
 
     if (selectedOption === 'insurance' && !selectedInsurance) {
-      setError('Por favor seleccione un seguro');
-      return;
+      setError('Por favor seleccione un seguro')
+      return
     }
 
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     try {
       const filters: ReportFilters = {
         start_date: dateRange[0].format('YYYY-MM-DD'),
         end_date: dateRange[1].format('YYYY-MM-DD'),
         format: format,
-      };
-
-      if (selectedOption === 'idoppril') {
-        filters.is_idoppril = true;
-      } else {
-        filters.insurance_id = selectedInsurance;
       }
 
-      await reportService.download(filters);
-      
+      if (selectedOption === 'idoppril') {
+        filters.is_idoppril = true
+      } else {
+        filters.insurance_id = selectedInsurance
+      }
+
+      await reportService.download(filters)
+
       showNotification({
         type: 'success',
         message: `Reporte ${format.toUpperCase()} descargado exitosamente`,
-      });
+      })
     } catch (error: any) {
-      console.error('Error al descargar:', error);
-      const errorMsg = error.response?.message || 'Error al descargar el reporte';
-      setError(errorMsg);
+      console.error('Error al descargar:', error)
+      const errorMsg = error.response?.message || 'Error al descargar el reporte'
+      setError(errorMsg)
       showNotification({
         type: 'error',
         message: errorMsg,
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const columns = [
     {
@@ -216,9 +234,8 @@ const InsuranceReportsDashboard: React.FC = () => {
       dataIndex: 'procedure_description',
       key: 'procedure_description',
       render: (text: string) => {
-        const color =
-          text === 'CONSULTA' ? 'blue' : text === 'TERAPIA' ? 'purple' : 'red';
-        return <Tag color={color}>{text}</Tag>;
+        const color = text === 'CONSULTA' ? 'blue' : text === 'TERAPIA' ? 'purple' : 'red'
+        return <Tag color={color}>{text}</Tag>
       },
     },
     {
@@ -242,7 +259,7 @@ const InsuranceReportsDashboard: React.FC = () => {
       align: 'right' as const,
       render: (value: number) => <Text strong>${value.toLocaleString()}</Text>,
     },
-  ];
+  ]
 
   const tabItems = [
     {
@@ -260,9 +277,9 @@ const InsuranceReportsDashboard: React.FC = () => {
             <Radio.Group
               value={selectedOption}
               onChange={(e) => {
-                setSelectedOption(e.target.value);
-                if (e.target.value !== 'insurance') {
-                  setSelectedInsurance(undefined);
+                setSelectedOption(e.target.value)
+                if (e.target.value === 'idoppril') {
+                  setSelectedInsurance(undefined)
                 }
               }}
               style={{ width: '100%' }}
@@ -271,12 +288,16 @@ const InsuranceReportsDashboard: React.FC = () => {
                 <Card
                   size="small"
                   style={{
-                    border: selectedOption === 'insurance' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                    border:
+                      selectedOption === 'insurance' ? '2px solid #1890ff' : '1px solid #d9d9d9',
                     cursor: 'pointer',
                   }}
-                  onClick={() => {
-                    setSelectedOption('insurance');
-                    setSelectedInsurance(undefined);
+                  onClick={(e) => {
+                    // Solo cambiar si el click NO es en el Select
+                    const target = e.target as HTMLElement
+                    if (!target.closest('.ant-select')) {
+                      setSelectedOption('insurance')
+                    }
                   }}
                 >
                   <Space direction="vertical" style={{ width: '100%' }}>
@@ -298,6 +319,7 @@ const InsuranceReportsDashboard: React.FC = () => {
                             .toLowerCase()
                             .includes(input.toLowerCase())
                         }
+                        onClick={(e) => e.stopPropagation()} // Prevenir propagación
                       >
                         {insurances.map((ins) => (
                           <Option key={ins.id} value={ins.id}>
@@ -312,10 +334,14 @@ const InsuranceReportsDashboard: React.FC = () => {
                 <Card
                   size="small"
                   style={{
-                    border: selectedOption === 'idoppril' ? '2px solid #fa8c16' : '1px solid #d9d9d9',
+                    border:
+                      selectedOption === 'idoppril' ? '2px solid #fa8c16' : '1px solid #d9d9d9',
                     cursor: 'pointer',
                   }}
-                  onClick={() => setSelectedOption('idoppril')}
+                  onClick={() => {
+                    setSelectedOption('idoppril')
+                    setSelectedInsurance(undefined)
+                  }}
                 >
                   <Radio value="idoppril">
                     <Space>
@@ -334,8 +360,8 @@ const InsuranceReportsDashboard: React.FC = () => {
               value={dateRange}
               onChange={(dates) => {
                 if (dates) {
-                  setDateRange([dates[0]!, dates[1]!]);
-                  loadStats();
+                  setDateRange([dates[0]!, dates[1]!])
+                  loadStats()
                 }
               }}
               format="DD/MM/YYYY"
@@ -363,7 +389,9 @@ const InsuranceReportsDashboard: React.FC = () => {
                     onClick={() => setFormat('pdf')}
                   >
                     <Space direction="vertical" align="center">
-                      <FilePdfOutlined style={{ fontSize: 48, color: format === 'pdf' ? '#1890ff' : '#d9d9d9' }} />
+                      <FilePdfOutlined
+                        style={{ fontSize: 48, color: format === 'pdf' ? '#1890ff' : '#d9d9d9' }}
+                      />
                       <Radio value="pdf">
                         <Text strong>PDF</Text>
                       </Radio>
@@ -384,7 +412,9 @@ const InsuranceReportsDashboard: React.FC = () => {
                     onClick={() => setFormat('excel')}
                   >
                     <Space direction="vertical" align="center">
-                      <FileExcelOutlined style={{ fontSize: 48, color: format === 'excel' ? '#52c41a' : '#d9d9d9' }} />
+                      <FileExcelOutlined
+                        style={{ fontSize: 48, color: format === 'excel' ? '#52c41a' : '#d9d9d9' }}
+                      />
                       <Radio value="excel">
                         <Text strong>Excel</Text>
                       </Radio>
@@ -526,9 +556,7 @@ const InsuranceReportsDashboard: React.FC = () => {
           {/* Botones */}
           <Row gutter={16} justify="space-between">
             <Col>
-              <CustomButton onClick={() => setActiveTab('generate')}>
-                Volver a Filtros
-              </CustomButton>
+              <CustomButton onClick={() => setActiveTab('generate')}>Volver a Filtros</CustomButton>
             </Col>
             <Col>
               <CustomButton
@@ -556,7 +584,7 @@ const InsuranceReportsDashboard: React.FC = () => {
         </Card>
       ),
     },
-  ];
+  ]
 
   return (
     <div style={{ padding: '24px', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
@@ -653,7 +681,7 @@ const InsuranceReportsDashboard: React.FC = () => {
         </Col>
       </Row>
     </div>
-  );
-};
+  )
+}
 
-export default InsuranceReportsDashboard;
+export default InsuranceReportsDashboard

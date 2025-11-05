@@ -46,15 +46,21 @@ class ConsultationService {
     return res.data
   }
 
-  async getDiagnostics(search?: string) {
-    const params = search ? `?search=${search}` : ''
-    const res = await serverCore.get(`/diagnostic-standards${params}`)
+  async getDiagnostics(search?: string, field?: string) {
+    const params = new URLSearchParams()
+    if (search) params.append('search', search)
+    if (field) params.append('field', field)
+
+    const res = await serverCore.get(`/diagnostic-standards?${params.toString()}`)
     return res.data
   }
 
-  async getProcedureStandards(search?: string) {
-    const params = search ? `?search=${search}` : ''
-    const res = await serverCore.get(`/procedure-standards${params}`)
+  async getProcedureStandards(search?: string, field?: string) {
+    const params = new URLSearchParams()
+    if (search) params.append('search', search)
+    if (field) params.append('field', field)
+
+    const res = await serverCore.get(`/procedure-standards?${params.toString()}`)
     return res.data
   }
 

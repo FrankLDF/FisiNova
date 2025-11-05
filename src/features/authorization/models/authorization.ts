@@ -74,6 +74,7 @@ export interface ConfirmAppointmentRequest {
 
   // Para seguro
   insurance_id?: number
+  insurance_code?: string
   authorization_number?: string // Solo para terapia + seguro
   authorization_date?: string
 

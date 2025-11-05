@@ -76,6 +76,7 @@ export const ConfirmAppointmentModal: React.FC<
         payment_type: initialPaymentType,
         insurance_id: appointment.insurance_id,
         case_number: appointment.case_number,
+        insurance_code: appointment.insurance_code,
       })
       setPaymentType(initialPaymentType as PaymentType)
     }
@@ -88,25 +89,28 @@ export const ConfirmAppointmentModal: React.FC<
     // Limpiar campos según el tipo de pago
     if (value === 'private') {
       form.setFieldsValue({
-        authorization_number: undefined,
-        insurance_id: undefined,
-        authorization_date: undefined,
-        case_number: undefined,
+        authorization_number: null,
+        insurance_id: null,
+        insurance_code: null,
+        authorization_date: null,
+        case_number: null,
       })
     } else if (value === 'workplace_risk') {
       form.setFieldsValue({
-        authorization_number: undefined,
-        insurance_id: undefined,
-        authorization_date: undefined,
+        authorization_number: null,
+        insurance_id: null,
+        authorization_date: null,
       })
     } else if (value === 'insurance') {
       form.setFieldsValue({
-        case_number: undefined,
+        case_number: null,
+        insurance_id: appointment?.insurance_id || selectedPatient?.insurance_id || null,
+        insurance_code: appointment?.insurance_code || selectedPatient?.insurance_code || null,
       })
     }
   }
 
-  const handlePatientSelect = (patient: Patient | null) => {
+  const handlePatientSelect = (patient: Patient | null) => {null
     setSelectedPatient(patient)
     if (patient && patient.insurance) {
       form.setFieldValue('insurance_id', patient.insurance.id)
@@ -139,6 +143,7 @@ export const ConfirmAppointmentModal: React.FC<
     // Solo incluir datos de seguro si es por seguro
     if (values.payment_type === 'insurance') {
       data.insurance_id = values.insurance_id
+      data.insurance_code = values.insurance_code
 
       // Solo incluir autorización si es TERAPIA por seguro
       if (isTherapy) {
@@ -329,7 +334,7 @@ export const ConfirmAppointmentModal: React.FC<
                 <Radio value="private">
                   <Space>
                     <DollarOutlined />
-                    <span>Particular (Sin Seguro)</span>
+                    <span>Privado (Sin Seguro)</span>
                   </Space>
                 </Radio>
                 <Radio value="workplace_risk">
@@ -374,6 +379,14 @@ export const ConfirmAppointmentModal: React.FC<
                         </Option>
                       ))}
                     </CustomSelect>
+                  </CustomFormItem>
+                </Col>
+                <Col span={24}>
+                <CustomFormItem
+                    label="Código de Seguro"
+                    name="insurance_code"
+                  >
+                    <CustomInput placeholder="Código del seguro médico" disabled />
                   </CustomFormItem>
                 </Col>
               </Row>

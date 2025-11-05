@@ -59,7 +59,7 @@ export const QuickPatientRegister: React.FC<QuickPatientRegisterProps> = ({
   const loadInsurances = async () => {
     try {
       setLoadingInsurances(true)
-      const response = await appointmentService.getAvaiableInsuranceCompanies()
+      const response = await appointmentService.getAvailableInsuranceCompanies()
       const insuranceData = response?.data?.data || response?.data || []
       setInsurances(Array.isArray(insuranceData) ? insuranceData : [])
     } catch (error) {

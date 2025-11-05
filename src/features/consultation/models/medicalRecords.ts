@@ -48,8 +48,8 @@ export interface MedicalRecord {
   diagnosis_notes?: string;
   procedure_ids?: number[];
   procedure_notes?: string[];
-  diagnostics: Array<{ id: number; code: string; description: string }>;
-  procedures: Array<{ id: number; code: string; description: string }>;
+  diagnostics?: Array<{ id: number; code: string; description: string }>;
+  procedures?: Array<{ id: number; code: string; description: string }>;
 
   // Plan y tratamiento
   therapy_reason?: string;

@@ -63,7 +63,7 @@ export const ConsultAppointments = () => {
 
   const { data: insurancesData } = useQuery({
     queryKey: ['insurances-active'],
-    queryFn: () => appointmentService.getAvaiableInsuranceCompanies(),
+    queryFn: () => appointmentService.getAvailableInsuranceCompanies(),
   })
 
   const insurances = insurancesData?.data?.data || insurancesData?.data || []

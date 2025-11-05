@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from 'react-router-dom'
 import {
   PATH_ACCESS_DENIED,
   PATH_CONSULTATIONS,
@@ -7,55 +7,57 @@ import {
   PATH_MAIN,
   PATH_NOT_FOUND,
   PATH_THERAPIST_DASHBOARD,
-} from "./pathts";
-import PublicRoutes from "./PublicRoutes";
-import PrivateRoutes from "./PrivateRoutes";
-import { NotFoundPage } from "../layout/NotFoundPage";
-import { AccessDenied } from "../layout/AccesDenied";
-import { Login } from "../features/auth/pages/Login";
+} from './pathts'
+import PublicRoutes from './PublicRoutes'
+import PrivateRoutes from './PrivateRoutes'
+import { NotFoundPage } from '../layout/NotFoundPage'
+import { AccessDenied } from '../layout/AccesDenied'
+import { Login } from '../features/auth/pages/Login'
 
 // ========== CITAS ==========
-import { ConsultAppointments } from "../features/appointment/pages/ConsultAppointment";
-import { AppointmentForm } from "../features/appointment/pages/AppointmentForm";
-import { PATH_CONSULT_APPOINTMENTS } from "../features/appointment/menu/path";
+import { ConsultAppointments } from '../features/appointment/pages/ConsultAppointment'
+import { AppointmentForm } from '../features/appointment/pages/AppointmentForm'
+import { PATH_CONSULT_APPOINTMENTS } from '../features/appointment/menu/path'
 
 // ========== PERSONAL Y HORARIOS ==========
-import { StaffForm } from "../features/staff/pages/StaffForm";
-import { ConsultStaff } from "../features/staff/pages/ConsultStaff";
-import { ScheduleTemplateForm } from "../features/staff/pages/ScheduleTemplateForm";
-import { ConsultScheduleTemplates } from "../features/staff/pages/ConsultScheduleTemplates";
-import { AssignSchedule, ConsultStaffSchedules } from "../features/staff/pages";
+import { StaffForm } from '../features/staff/pages/StaffForm'
+import { ConsultStaff } from '../features/staff/pages/ConsultStaff'
+import { ScheduleTemplateForm } from '../features/staff/pages/ScheduleTemplateForm'
+import { ConsultScheduleTemplates } from '../features/staff/pages/ConsultScheduleTemplates'
+import { AssignSchedule, ConsultStaffSchedules } from '../features/staff/pages'
 
 // ========== CONSULTAS MÉDICAS ==========
-import { MedicDashboard } from "../features/consultation/pages/MedicDashboard";
-import { ConsultationForm } from "../features/consultation/pages/ConsultationForm";
+import { MedicDashboard } from '../features/consultation/pages/MedicDashboard'
+import { ConsultationForm } from '../features/consultation/pages/ConsultationForm'
 
 // ========== USUARIOS ==========
-import { ConsultUsers } from "../features/users/pages/ConsultUsers";
-import { UserForm } from "../features/users/pages/UserForm";
+import { ConsultUsers } from '../features/users/pages/ConsultUsers'
+import { UserForm } from '../features/users/pages/UserForm'
 
 // ========== OTROS ==========
-import { RoleProtectedRoute } from "./RoleProtectedRoutes";
-import { Rol } from "../utils/constants";
-import { isMedic, isSecretary, isTherapist } from "../utils/authFunctions";
-import { useAuth } from "../store/auth/AuthContext";
-import { TherapistDashboard } from "../features/therapy/pages/TherapistDashboard";
+import { RoleProtectedRoute } from './RoleProtectedRoutes'
+import { Rol } from '../utils/constants'
+import { isMedic, isSecretary, isTherapist } from '../utils/authFunctions'
+import { useAuth } from '../store/auth/AuthContext'
+import { TherapistDashboard } from '../features/therapy/pages/TherapistDashboard'
+import { InsuranceForm } from '../features/insurances/pages/InsuranceForm'
+import { ConsultInsurances } from '../features/insurances/pages/ConsultInsurances'
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user } = useAuth()
 
-  let dashboardPath = PATH_MAIN;
+  let dashboardPath = PATH_MAIN
 
   if (isMedic(user?.rols || [])) {
-    dashboardPath = PATH_CONSULTATIONS;
+    dashboardPath = PATH_CONSULTATIONS
   }
 
   if (isTherapist(user?.rols || [])) {
-    dashboardPath = PATH_THERAPIST_DASHBOARD;
+    dashboardPath = PATH_THERAPIST_DASHBOARD
   }
 
   if (isSecretary(user?.rols || [])) {
-    dashboardPath = PATH_CONSULT_APPOINTMENTS;
+    dashboardPath = PATH_CONSULT_APPOINTMENTS
   }
 
   return (
@@ -335,11 +337,54 @@ const AppRoutes = () => {
           </PrivateRoutes>
         }
       />
+      <Route
+        path="/consult-insurances"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.SECRETARY]}>
+              <ConsultInsurances />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/create-insurance"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <InsuranceForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/insurances/:id"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.SECRETARY]}>
+              <InsuranceForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path="/insurances/:id/edit"
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <InsuranceForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
 
       {/* ========== 404 ========== */}
       <Route path={PATH_NOT_FOUND} element={<NotFoundPage />} />
     </Routes>
-  );
-};
+  )
+}
 
-export default AppRoutes;
+export default AppRoutes

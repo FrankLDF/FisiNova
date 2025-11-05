@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Form, Row, Col, Alert } from "antd";
-import { UserAddOutlined } from "@ant-design/icons";
-import { CustomInput } from "../../../components/form/CustomInput";
-import { CustomFormItem } from "../../../components/form/CustomFormItem";
-import { CustomSelect, Option } from "../../../components/form/CustomSelect";
-import { CustomDatePicker } from "../../../components/form/CustomDatePicker";
-import { CustomButton } from "../../../components/Button/CustomButton";
-import { useCustomMutation } from "../../../hooks/UseCustomMutation";
-import { showNotification } from "../../../utils/showNotification";
-import { showHandleError } from "../../../utils/handleError";
-import patientService from "../../patient/services/patient";
-import appointmentService from "../services/appointment";
-import type { Patient } from "../../patient/models/patient";
-import dayjs, { Dayjs } from "dayjs";
-import type { Appointment } from "../models/appointment";
+import React, { useState, useEffect } from 'react'
+import { Modal, Form, Row, Col, Alert } from 'antd'
+import { UserAddOutlined } from '@ant-design/icons'
+import { CustomInput } from '../../../components/form/CustomInput'
+import { CustomFormItem } from '../../../components/form/CustomFormItem'
+import { CustomSelect, Option } from '../../../components/form/CustomSelect'
+import { CustomDatePicker } from '../../../components/form/CustomDatePicker'
+import { CustomButton } from '../../../components/Button/CustomButton'
+import { useCustomMutation } from '../../../hooks/UseCustomMutation'
+import { showNotification } from '../../../utils/showNotification'
+import { showHandleError } from '../../../utils/handleError'
+import patientService from '../../patient/services/patient'
+import appointmentService from '../services/appointment'
+import type { Patient } from '../../patient/models/patient'
+import dayjs, { Dayjs } from 'dayjs'
+import type { Appointment } from '../models/appointment'
 
 interface QuickPatientRegisterProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: (patient: Patient) => void;
-  appointment?: Appointment | null;
+  open: boolean
+  onClose: () => void
+  onSuccess: (patient: Patient) => void
+  appointment?: Appointment | null
 }
 
 interface Insurance {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
 export const QuickPatientRegister: React.FC<QuickPatientRegisterProps> = ({
@@ -33,94 +33,90 @@ export const QuickPatientRegister: React.FC<QuickPatientRegisterProps> = ({
   onSuccess,
   appointment,
 }) => {
-  const [form] = Form.useForm();
-  const [insurances, setInsurances] = useState<Insurance[]>([]);
-  const [loadingInsurances, setLoadingInsurances] = useState(false);
+  const [form] = Form.useForm()
+  const [insurances, setInsurances] = useState<Insurance[]>([])
+  const [loadingInsurances, setLoadingInsurances] = useState(false)
 
   useEffect(() => {
     if (open) {
-      loadInsurances();
+      loadInsurances()
     }
-  }, [open]);
+  }, [open])
 
-  console.log("Appointment in QuickPatientRegister:", appointment);
   useEffect(() => {
     if (appointment && open) {
       form.setFieldsValue({
-        firstname: appointment.guest_firstname || "",
-        lastname: appointment.guest_lastname || "",
+        firstname: appointment.guest_firstname || '',
+        lastname: appointment.guest_lastname || '',
         insurance_id: appointment.insurance_id,
         insurance_code: appointment.insurance_code,
         dni: appointment.dni,
         phone: appointment.phone,
         passport: appointment.passport,
-        
-      });
+      })
     }
-  }, [appointment, open, form]);
+  }, [appointment, open, form])
   const loadInsurances = async () => {
     try {
-      setLoadingInsurances(true);
-      const response = await appointmentService.getAvaiableInsuranceCompanies();
-      const insuranceData = response?.data?.data || response?.data || [];
-      setInsurances(Array.isArray(insuranceData) ? insuranceData : []);
+      setLoadingInsurances(true)
+      const response = await appointmentService.getAvailableInsuranceCompanies()
+      const insuranceData = response?.data?.data || response?.data || []
+      setInsurances(Array.isArray(insuranceData) ? insuranceData : [])
     } catch (error) {
-      console.error("Error cargando seguros:", error);
+      console.error('Error cargando seguros:', error)
       showNotification({
-        type: "error",
-        message: "Error al cargar compañías de seguro",
-      });
-      setInsurances([]);
+        type: 'error',
+        message: 'Error al cargar compañías de seguro',
+      })
+      setInsurances([])
     } finally {
-      setLoadingInsurances(false);
+      setLoadingInsurances(false)
     }
-  };
+  }
 
   const { mutate: createPatient, isPending } = useCustomMutation({
     execute: async (data: any) => {
-      const patientResponse = await patientService.createPatient(data);
-      const newPatient = patientResponse?.data || patientResponse;
+      const patientResponse = await patientService.createPatient(data)
+      const newPatient = patientResponse?.data || patientResponse
 
       if (appointment && newPatient.id) {
         if (!appointment?.id) {
-          throw new Error("La cita no tiene un ID válido.");
+          throw new Error('La cita no tiene un ID válido.')
         }
 
         await appointmentService.updateAppointment(appointment?.id, {
           patient_id: newPatient.id,
-        });
+        })
       }
 
-      return newPatient;
+      return newPatient
     },
     onSuccess: (patient) => {
       showNotification({
-        type: "success",
-        message: "Paciente registrado exitosamente",
-      });
-      form.resetFields();
-      onSuccess(patient);
+        type: 'success',
+        message: 'Paciente registrado exitosamente',
+      })
+      form.resetFields()
+      onSuccess(patient)
     },
     onError: (err) => {
-      showHandleError(err);
+      showHandleError(err)
     },
-  });
+  })
 
   const handleSubmit = (values: any) => {
     const patientData = {
       ...values,
-      birthdate: values.birthdate
-        ? dayjs(values.birthdate).format("YYYY-MM-DD")
-        : undefined,
-    };
+      birthdate: values.birthdate ? dayjs(values.birthdate).format('YYYY-MM-DD') : undefined,
+    }
 
-    createPatient(patientData);
-  };
+    createPatient(patientData)
+  }
 
   const handleCancel = () => {
-    form.resetFields();
-    onClose();
-  };
+    form.resetFields()
+    onClose()
+  }
 
   return (
     <Modal
@@ -188,11 +184,11 @@ export const QuickPatientRegister: React.FC<QuickPatientRegisterProps> = ({
           <Col xs={24} md={12}>
             <CustomFormItem label="Fecha de Nacimiento" name="birthdate">
               <CustomDatePicker
-                style={{ width: "100%" }}
+                style={{ width: '100%' }}
                 format="DD/MM/YYYY"
                 placeholder="dd/mm/aaaa"
                 disabledDate={(current: Dayjs | null) =>
-                  current ? current > dayjs().endOf("day") : false
+                  current ? current > dayjs().endOf('day') : false
                 }
               />
             </CustomFormItem>
@@ -282,5 +278,5 @@ export const QuickPatientRegister: React.FC<QuickPatientRegisterProps> = ({
         </Row>
       </Form>
     </Modal>
-  );
-};
+  )
+}

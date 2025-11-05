@@ -9,6 +9,12 @@ export const Rol = {
   SECRETARY: 4,  // secretary
 }
 
+export const Positions = {
+  MEDIC: '1',
+  THERAPIST: '2',
+  SECRETARY: '3',
+}
+
 export type AppMenuItem = ItemType & {
   requiredRols?: number[]
   children?: AppMenuItem[]

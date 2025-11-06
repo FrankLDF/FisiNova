@@ -76,6 +76,7 @@ class ConsultationService {
     diagnosis_ids: number[]
     procedure_ids: number[]
     notes?: string
+    requires_therapy: boolean
   }) {
     const medicalRecord: MedicalRecord = {
       appointment_id: data.appointment_id,
@@ -84,6 +85,7 @@ class ConsultationService {
       diagnosis_ids: data.diagnosis_ids,
       procedure_ids: data.procedure_ids,
       general_notes: data.notes,
+      requires_therapy: data.requires_therapy, 
     }
 
     const res = await serverCore.post('/medical-records', medicalRecord)

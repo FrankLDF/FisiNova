@@ -168,7 +168,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   // Resetear al cerrar
   useEffect(() => {
     if (!open) {
-      console.log('🔄 Reseteando modal...')
       setCurrentStep(0)
       setSessions([])
       setSelectedPatient(null)
@@ -200,7 +199,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   }
 
   const handleCancel = () => {
-    console.log('❌ Cerrando modal y limpiando datos...')
     form.resetFields()
     setCurrentStep(0)
     setSessions([])
@@ -212,21 +210,16 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
     onClose()
   }
 
-  const nextStep = () => {
-    console.log('➡️ Avanzando al siguiente paso...')
-    console.log('📊 Valores actuales antes de avanzar:', form.getFieldsValue())
-    
+  const nextStep = () => {    
     form.validateFields().then(() => {
       setCurrentStep(currentStep + 1)
-      console.log('✅ Validación exitosa, nuevo paso:', currentStep + 1)
+      console.log('NOOOOOO: ', form.getFieldValue("authorization_number"))
     }).catch((error) => {
       console.log('❌ Error de validación:', error)
     })
   }
 
   const prevStep = () => {
-    console.log('⬅️ Retrocediendo al paso anterior...')
-    console.log('📊 Valores actuales antes de retroceder:', form.getFieldsValue())
     setCurrentStep(currentStep - 1)
   }
 
@@ -331,7 +324,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   }
 
   const handleSubmit = () => {
-    console.log('🔍 Valores actuales del formulario:', form.getFieldsValue())
     
     form.validateFields([
       'authorization_number',
@@ -650,16 +642,16 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                         <Descriptions.Item label="Teléfono">
                           {selectedPatient.phone}
                         </Descriptions.Item>
-                        <Descriptions.Item label="Edad">
-                          {selectedPatient.birthdate 
-                            ? dayjs().diff(dayjs(selectedPatient.birthdate), 'year') + ' años'
-                            : 'N/A'}
+                        <Descriptions.Item label="Pasaporte">
+                          {selectedPatient.passport || 'N/A'}
                         </Descriptions.Item>
                         <Descriptions.Item label="Sexo">
                           {selectedPatient.sex === 'M' ? 'Masculino' : 'Femenino'}
                         </Descriptions.Item>
-                        <Descriptions.Item label="Código de Seguro">
-                          {selectedPatient.insurance_code || 'N/A'}
+                        <Descriptions.Item label="Edad">
+                          {selectedPatient.birthdate 
+                            ? dayjs().diff(dayjs(selectedPatient.birthdate), 'year') + ' años'
+                            : 'N/A'}
                         </Descriptions.Item>
                       </Descriptions>
                       

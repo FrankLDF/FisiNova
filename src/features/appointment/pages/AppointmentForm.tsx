@@ -350,13 +350,13 @@ export const AppointmentForm = () => {
                     </Col>
 
                     <Col xs={24} sm={12}>
-                      <CustomFormItem label="DNI" name="dni">
+                      <CustomFormItem label="DNI"  name="dni" maxLength={11}>
                         <CustomInput placeholder="Documento de identidad" />
                       </CustomFormItem>
                     </Col>
 
                     <Col xs={24} sm={12}>
-                      <CustomFormItem label="Teléfono" name="phone">
+                      <CustomFormItem label="Teléfono" name="phone" maxLength={10}>
                         <CustomInput placeholder="Número de contacto" />
                       </CustomFormItem>
                     </Col>
@@ -377,7 +377,10 @@ export const AppointmentForm = () => {
                       </CustomFormItem>
                     </Col>
                     <Col xs={24} sm={12}>
-                      <CustomFormItem label="Código de Seguro" name="insurance_code">
+                      <CustomFormItem
+                        label="Código de Seguro"
+                        name="insurance_code"
+                      >
                         <CustomInput placeholder="Código de seguro" />
                       </CustomFormItem>{' '}
                     </Col>

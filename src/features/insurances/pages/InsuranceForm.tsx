@@ -178,7 +178,7 @@ export const InsuranceForm = () => {
   return (
     <div style={{ padding: '0 16px' }}>
       <Row gutter={[16, 16]} justify="center">
-        <Col xs={24} lg={16}>
+        <Col xs={24}>
           <Card
             title={
               <Space>
@@ -287,7 +287,7 @@ export const InsuranceForm = () => {
 
                 <Divider style={{ margin: '16px 0' }} />
 
-                <CustomFormItem name="active" valuePropName="checked">
+                {/* <CustomFormItem name="active" valuePropName="checked">
                   <Space>
                     <input
                       type="checkbox"
@@ -300,7 +300,7 @@ export const InsuranceForm = () => {
                     />
                     <Text strong>Seguro Activo</Text>
                   </Space>
-                </CustomFormItem>
+                </CustomFormItem> */}
 
                 {mode !== 'create' && (
                   <Alert

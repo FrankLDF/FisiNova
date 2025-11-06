@@ -20,6 +20,7 @@ import userService from '../services/user'
 import type { UserModel, UserFilters } from '../models/user'
 import type { ColumnsType } from 'antd/es/table'
 import { showHandleError } from '../../../utils/handleError'
+import { useAuth } from '../../../store/auth/AuthContext'
 
 const { Option } = Select
 const { Search } = Input
@@ -31,6 +32,7 @@ export const ConsultUsers = () => {
   })
   const [searchValue, setSearchValue] = useState('')
 
+  const { user } = useAuth()
   const {
     data: usersData,
     isLoading,
@@ -161,6 +163,7 @@ export const ConsultUsers = () => {
 
           <Tooltip title="Editar">
             <CustomButton
+              disabled={record?.id === user?.id}
               type="text"
               icon={<EditOutlined />}
               onClick={() => handleEditUser(record.id!)}
@@ -188,6 +191,7 @@ export const ConsultUsers = () => {
           >
             <Tooltip title="Eliminar">
               <CustomButton
+                disabled={record?.id === user?.id}
                 type="text"
                 size="small"
                 danger

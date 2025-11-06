@@ -121,13 +121,13 @@ export const ConsultScheduleTemplates = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          <Tooltip title="Ver detalles">
+          {/* <Tooltip title="Ver detalles">
             <CustomButton
               type="text"
               icon={<EyeOutlined />}
               onClick={() => handleEditTemplate(record.id!)}
             />
-          </Tooltip>
+          </Tooltip> */}
 
           <Tooltip title="Editar">
             <CustomButton

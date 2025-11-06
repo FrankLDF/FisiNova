@@ -620,7 +620,7 @@ export const AssignSchedule = () => {
                         </CustomFormItem>
                       </Col>
 
-                      <Col xs={24} md={12}>
+                      {/* <Col xs={24} md={12}>
                         <CustomFormItem label="Estado" name="status">
                           <CustomSelect placeholder="Estado de la asignación">
                             {STATUS_OPTIONS.map((opt) => (
@@ -630,7 +630,7 @@ export const AssignSchedule = () => {
                             ))}
                           </CustomSelect>
                         </CustomFormItem>
-                      </Col>
+                      </Col> */}
 
                       <Col span={24}>
                         <CustomFormItem label="Notas" name="notes">

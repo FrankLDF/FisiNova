@@ -10,6 +10,7 @@ import { useAuth } from '../../store/auth/AuthContext'
 import { consultationMenu } from '../../features/consultation/menu/consultation'
 import { therapyMenu } from '../../features/therapy/menu/therapyMenu'
 import { reportsMenu } from '../../features/Reports/menu/reportsMenu'
+import { backupMenu } from '../../features/backup/menu/backup'
 
 export const Navbar = () => {
   const navigate = useNavigate()
@@ -27,7 +28,9 @@ export const Navbar = () => {
     appointment,
     consultationMenu,
     therapyMenu,
-    reportsMenu
+    reportsMenu,
+
+    backupMenu,
   ]
   const filteredItems: AppMenuItem[] = filterMenuItemsByRole(
     items as never,

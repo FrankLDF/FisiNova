@@ -44,10 +44,12 @@ const { Option } = Select
 
 const InsuranceReportsDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'generate' | 'preview'>('generate')
-  const [selectedOption, setSelectedOption] = useState<'insurance' | 'idoppril' | undefined>(
-    undefined
-  )
-  const [selectedInsurance, setSelectedInsurance] = useState<number | undefined>(undefined)
+  const [selectedOption, setSelectedOption] = useState<
+    'insurance' | 'idoppril' | undefined
+  >(undefined)
+  const [selectedInsurance, setSelectedInsurance] = useState<
+    number | undefined
+  >(undefined)
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
     dayjs().startOf('month'),
     dayjs().endOf('month'),
@@ -90,6 +92,7 @@ const InsuranceReportsDashboard: React.FC = () => {
   }
 
   const handlePreview = async (): Promise<void> => {
+    // Validaciones
     if (!selectedOption) {
       setError('Por favor seleccione un seguro o IDOPPRIL')
       return
@@ -116,33 +119,55 @@ const InsuranceReportsDashboard: React.FC = () => {
         filters.insurance_id = selectedInsurance
       }
 
-      console.log('Enviando filtros:', filters) // Debug
+      console.log('=== PREVIEW REQUEST ===')
+      console.log('Filtros enviados:', filters)
 
       const data = await reportService.preview(filters)
 
-      console.log('Datos recibidos:', data) // Debug
+      console.log('=== PREVIEW RESPONSE ===')
+      console.log('Datos recibidos:', data)
+      console.log('Servicios:', data.services?.length || 0)
+      console.log('Summary:', data.summary)
+
+      // Validar estructura de datos
+      if (!data || typeof data !== 'object') {
+        throw new Error('Respuesta inválida del servidor')
+      }
+
+      // Mostrar datos incluso si no hay servicios
+      setPreviewData(data)
 
       if (!data.services || data.services.length === 0) {
         showNotification({
           type: 'warning',
-          message: 'No se encontraron registros para el período seleccionado',
+          message: `No se encontraron registrosNo hay servicios registrados para el período ${dateRange[0].format(
+            'DD/MM/YYYY'
+          )} - ${dateRange[1].format('DD/MM/YYYY')}`,
         })
-        setPreviewData(data) // Mostrar de todas formas
       } else {
-        setPreviewData(data)
         showNotification({
           type: 'success',
-          message: 'Vista previa generada exitosamente',
+          message: `Vista previa generada Se encontraron ${data.services.length} servicio(s)`,
         })
       }
 
       setActiveTab('preview')
     } catch (error: any) {
-      console.error('Error en vista previa:', error)
-      console.error('Response data:', error.response?.data) // Debug adicional
+      console.error('=== PREVIEW ERROR ===')
+      console.error('Error completo:', error)
+      console.error('Response:', error.response)
+      console.error('Data:', error.response?.data)
 
-      const errorMsg =
-        error.response?.data?.message || error.message || 'Error al generar vista previa'
+      let errorMsg = 'Error al generar vista previa'
+
+      if (error.response?.data?.error?.message) {
+        errorMsg = error.response.data.error.message
+      } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message
+      } else if (error.message) {
+        errorMsg = error.message
+      }
+
       setError(errorMsg)
       showNotification({
         type: 'error',
@@ -188,7 +213,8 @@ const InsuranceReportsDashboard: React.FC = () => {
       })
     } catch (error: any) {
       console.error('Error al descargar:', error)
-      const errorMsg = error.response?.message || 'Error al descargar el reporte'
+      const errorMsg =
+        error.response?.message || 'Error al descargar el reporte'
       setError(errorMsg)
       showNotification({
         type: 'error',
@@ -216,13 +242,16 @@ const InsuranceReportsDashboard: React.FC = () => {
     {
       title: 'Afiliado',
       key: 'patient_name',
-      render: (record: ReportService) => `${record.patient_name} ${record.patient_last_name}`,
+      render: (record: ReportService) =>
+        `${record.patient_name} ${record.patient_last_name}`,
     },
     {
       title: previewData?.is_idoppril ? 'No. Caso' : 'No. Afiliado',
       key: 'identifier',
       render: (record: ReportService) =>
-        previewData?.is_idoppril ? record.case_number : record.patient_insurance_code,
+        previewData?.is_idoppril
+          ? record.case_number
+          : record.patient_insurance_code,
     },
     {
       title: 'Autorización',
@@ -234,7 +263,8 @@ const InsuranceReportsDashboard: React.FC = () => {
       dataIndex: 'procedure_description',
       key: 'procedure_description',
       render: (text: string) => {
-        const color = text === 'CONSULTA' ? 'blue' : text === 'TERAPIA' ? 'purple' : 'red'
+        const color =
+          text === 'CONSULTA' ? 'blue' : text === 'TERAPIA' ? 'purple' : 'red'
         return <Tag color={color}>{text}</Tag>
       },
     },
@@ -284,12 +314,18 @@ const InsuranceReportsDashboard: React.FC = () => {
               }}
               style={{ width: '100%' }}
             >
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              <Space
+                direction="vertical"
+                style={{ width: '100%' }}
+                size="middle"
+              >
                 <Card
                   size="small"
                   style={{
                     border:
-                      selectedOption === 'insurance' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                      selectedOption === 'insurance'
+                        ? '2px solid #1890ff'
+                        : '1px solid #d9d9d9',
                     cursor: 'pointer',
                   }}
                   onClick={(e) => {
@@ -335,7 +371,9 @@ const InsuranceReportsDashboard: React.FC = () => {
                   size="small"
                   style={{
                     border:
-                      selectedOption === 'idoppril' ? '2px solid #fa8c16' : '1px solid #d9d9d9',
+                      selectedOption === 'idoppril'
+                        ? '2px solid #fa8c16'
+                        : '1px solid #d9d9d9',
                     cursor: 'pointer',
                   }}
                   onClick={() => {
@@ -382,7 +420,10 @@ const InsuranceReportsDashboard: React.FC = () => {
                   <Card
                     size="small"
                     style={{
-                      border: format === 'pdf' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                      border:
+                        format === 'pdf'
+                          ? '2px solid #1890ff'
+                          : '1px solid #d9d9d9',
                       cursor: 'pointer',
                       textAlign: 'center',
                     }}
@@ -390,7 +431,10 @@ const InsuranceReportsDashboard: React.FC = () => {
                   >
                     <Space direction="vertical" align="center">
                       <FilePdfOutlined
-                        style={{ fontSize: 48, color: format === 'pdf' ? '#1890ff' : '#d9d9d9' }}
+                        style={{
+                          fontSize: 48,
+                          color: format === 'pdf' ? '#1890ff' : '#d9d9d9',
+                        }}
                       />
                       <Radio value="pdf">
                         <Text strong>PDF</Text>
@@ -405,7 +449,10 @@ const InsuranceReportsDashboard: React.FC = () => {
                   <Card
                     size="small"
                     style={{
-                      border: format === 'excel' ? '2px solid #52c41a' : '1px solid #d9d9d9',
+                      border:
+                        format === 'excel'
+                          ? '2px solid #52c41a'
+                          : '1px solid #d9d9d9',
                       cursor: 'pointer',
                       textAlign: 'center',
                     }}
@@ -413,7 +460,10 @@ const InsuranceReportsDashboard: React.FC = () => {
                   >
                     <Space direction="vertical" align="center">
                       <FileExcelOutlined
-                        style={{ fontSize: 48, color: format === 'excel' ? '#52c41a' : '#d9d9d9' }}
+                        style={{
+                          fontSize: 48,
+                          color: format === 'excel' ? '#52c41a' : '#d9d9d9',
+                        }}
                       />
                       <Radio value="excel">
                         <Text strong>Excel</Text>
@@ -480,7 +530,9 @@ const InsuranceReportsDashboard: React.FC = () => {
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <Statistic
-                  title={previewData.is_idoppril ? 'Monto IDOPPRIL' : 'Monto Seguro'}
+                  title={
+                    previewData.is_idoppril ? 'Monto IDOPPRIL' : 'Monto Seguro'
+                  }
                   value={previewData.summary.total_insurance_amount}
                   prefix="$"
                   precision={2}
@@ -534,12 +586,14 @@ const InsuranceReportsDashboard: React.FC = () => {
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={1} align="right">
                       <Text strong style={{ color: '#52c41a' }}>
-                        ${previewData.summary.total_insurance_amount.toLocaleString()}
+                        $
+                        {previewData.summary.total_insurance_amount.toLocaleString()}
                       </Text>
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={2} align="right">
                       <Text strong style={{ color: '#fa8c16' }}>
-                        ${previewData.summary.total_patient_amount.toLocaleString()}
+                        $
+                        {previewData.summary.total_patient_amount.toLocaleString()}
                       </Text>
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={3} align="right">
@@ -556,7 +610,9 @@ const InsuranceReportsDashboard: React.FC = () => {
           {/* Botones */}
           <Row gutter={16} justify="space-between">
             <Col>
-              <CustomButton onClick={() => setActiveTab('generate')}>Volver a Filtros</CustomButton>
+              <CustomButton onClick={() => setActiveTab('generate')}>
+                Volver a Filtros
+              </CustomButton>
             </Col>
             <Col>
               <CustomButton
@@ -573,11 +629,20 @@ const InsuranceReportsDashboard: React.FC = () => {
         </Space>
       ) : (
         <Card>
-          <Space direction="vertical" align="center" style={{ width: '100%', padding: '60px 0' }}>
+          <Space
+            direction="vertical"
+            align="center"
+            style={{ width: '100%', padding: '60px 0' }}
+          >
             <EyeOutlined style={{ fontSize: 64, color: '#d9d9d9' }} />
             <Title level={4}>No hay vista previa disponible</Title>
-            <Text type="secondary">Genera un reporte para ver la vista previa</Text>
-            <CustomButton type="primary" onClick={() => setActiveTab('generate')}>
+            <Text type="secondary">
+              Genera un reporte para ver la vista previa
+            </Text>
+            <CustomButton
+              type="primary"
+              onClick={() => setActiveTab('generate')}
+            >
               Generar Reporte
             </CustomButton>
           </Space>
@@ -587,7 +652,13 @@ const InsuranceReportsDashboard: React.FC = () => {
   ]
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+    <div
+      style={{
+        padding: '24px',
+        backgroundColor: '#f0f2f5',
+        minHeight: '100vh',
+      }}
+    >
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Space direction="vertical" size="large" style={{ width: '100%' }}>

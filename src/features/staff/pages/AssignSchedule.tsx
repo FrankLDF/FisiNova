@@ -467,7 +467,7 @@ export const AssignSchedule = () => {
                   </Card>
 
                   {/* ========== ASIGNACIÓN RECURRENTE ========== */}
-                  {assignmentType === 'recurring' && (
+                  {/* {assignmentType === 'recurring' && (
                     <Card
                       type="inner"
                       title="Configuración Recurrente"
@@ -531,7 +531,7 @@ export const AssignSchedule = () => {
                         </Col>
                       </Row>
                     </Card>
-                  )}
+                  )} */}
 
                   {/* ========== ASIGNACIÓN ESPECÍFICA ========== */}
                   {assignmentType === 'specific' && (

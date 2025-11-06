@@ -74,7 +74,7 @@ export const ConfirmAppointmentModal: React.FC<
       const initialPaymentType = appointment.payment_type || 'insurance'
       form.setFieldsValue({
         payment_type: initialPaymentType,
-        insurance_id: appointment.insurance_id,
+        insurance_id: Number(appointment.insurance_id || selectedPatient?.insurance_id || 0),
         case_number: appointment.case_number,
         insurance_code: appointment.insurance_code,
       })

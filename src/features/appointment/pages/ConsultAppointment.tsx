@@ -375,21 +375,11 @@ export const ConsultAppointments = () => {
     setSelectedActive(undefined)
   }
 
-<<<<<<< HEAD
   const handleDateRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
     if (dates && dates[0] && dates[1]) {
       // Rango válido
       const start = dates[0].startOf('day')
       const end = dates[1].endOf('day')
-=======
-  const handleDateRangeChange = (
-    dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
-  ) => {
-    const validDates =
-      dates && dates[0] && dates[1]
-        ? ([dates[0], dates[1]] as [dayjs.Dayjs, dayjs.Dayjs])
-        : null
->>>>>>> main
 
       setDateRange([start, end])
       setFilters((prev) => ({

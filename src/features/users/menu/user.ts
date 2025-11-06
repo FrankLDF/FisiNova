@@ -1,21 +1,29 @@
 // src/features/users/menu/user.ts
 
+import React from 'react'
 import { Rol, type AppMenuItem } from '../../../utils/constants'
-
+import {
+  UserAddOutlined,
+  UsergroupAddOutlined,
+  UserOutlined,
+} from '@ant-design/icons'
 export const userMenu: AppMenuItem = {
   key: 'users-management',
   label: 'Usuarios',
   requiredRols: [Rol.ADMIN],
+  icon: React.createElement(UserOutlined),
   children: [
     {
       key: '/consult-users',
       label: 'Consultar Usuarios',
       requiredRols: [Rol.ADMIN],
+      icon: React.createElement(UsergroupAddOutlined),
     },
     {
       key: '/create-user',
       label: 'Crear Usuario',
       requiredRols: [Rol.ADMIN],
+      icon: React.createElement(UserAddOutlined),
     },
   ],
 }

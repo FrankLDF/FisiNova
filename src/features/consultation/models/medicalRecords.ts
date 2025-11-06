@@ -4,6 +4,7 @@ export interface MedicalRecord {
   appointment_id: number;
   patient_id: number;
   employee_id: number;
+  requires_therapy: boolean;
 
   // Motivo de consulta
   chief_complaint?: string;

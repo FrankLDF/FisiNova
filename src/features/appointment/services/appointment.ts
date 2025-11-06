@@ -57,11 +57,9 @@ class AppointmentService {
   // ========== CRUD de Citas ==========
 
   async getAppointments(filters: AppointmentFilters = {}) {
-    const params = buildQueryParams(filters)
-    const res = await serverCore.get(`/appointments?${params}`)
+    const res = await serverCore.get('/appointments', { params: filters })
     return res.data
   }
-
   async getAppointment(id: number) {
     const res = await serverCore.get(`/appointments/${id}`)
     return res.data

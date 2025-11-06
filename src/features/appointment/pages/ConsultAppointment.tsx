@@ -119,10 +119,10 @@ export const ConsultAppointments = () => {
 
   const statusColors: Record<string, string> = {
     programada: 'blue',
-    confirmada: 'green',
+    confirmada: 'warning',
     completada: 'success',
     cancelada: 'error',
-    inactiva: 'warning',
+    pendiente_autorizacion: 'orange',
   }
 
   const getStatusColor = (status?: string) => {
@@ -265,7 +265,7 @@ export const ConsultAppointments = () => {
                 </Tooltip>
               )}
 
-              {record.status === 'completada' && record.type === 'consultation' && (
+              {record.status === 'pendiente_autorizacion' && record.type === 'consultation' && (
                 <Tooltip title="Autorizar Terapias">
                   <CustomButton
                     type="text"
@@ -336,17 +336,26 @@ export const ConsultAppointments = () => {
   }
 
   const handleDateRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
-    const validDates =
-      dates && dates[0] && dates[1] ? ([dates[0], dates[1]] as [dayjs.Dayjs, dayjs.Dayjs]) : null
+    if (dates && dates[0] && dates[1]) {
+      // Rango válido
+      const start = dates[0].startOf('day')
+      const end = dates[1].endOf('day')
 
-    setDateRange(validDates)
-
-    if (dates) {
-      handleFilterChange('start_date', dates[0]?.format('YYYY-MM-DD'))
-      handleFilterChange('end_date', dates[1]?.format('YYYY-MM-DD'))
+      setDateRange([start, end])
+      setFilters((prev) => ({
+        ...prev,
+        start_date: start.format('YYYY-MM-DD'),
+        end_date: end.format('YYYY-MM-DD'),
+      }))
     } else {
-      handleFilterChange('start_date', undefined)
-      handleFilterChange('end_date', undefined)
+      // Limpieza del rango
+      setDateRange(null)
+      setFilters((prev) => {
+        const newFilters = { ...prev }
+        delete newFilters.start_date
+        delete newFilters.end_date
+        return newFilters
+      })
     }
   }
 
@@ -399,6 +408,7 @@ export const ConsultAppointments = () => {
                 >
                   <Option value="programada">Programada</Option>
                   <Option value="confirmada">Confirmada</Option>
+                  <Option value="pendiente_autorizacion">Pendiente Autorización</Option>
                   <Option value="completada">Completada</Option>
                   <Option value="cancelada">Cancelada</Option>
                 </Select>

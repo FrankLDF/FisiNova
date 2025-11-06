@@ -422,6 +422,7 @@ export const ConfirmAppointmentModal: React.FC<
                           style={{ width: '100%' }}
                           format="DD/MM/YYYY"
                           placeholder="Seleccionar fecha"
+                          defaultValue={dayjs().format('YYYY-MM-DD')}
                           disabledDate={(current) =>
                             current && current < dayjs().startOf('day')
                           }

@@ -298,18 +298,6 @@ export const ConsultAppointments = () => {
                 </Tooltip>
               )}
 
-<<<<<<< HEAD
-              {record.status === 'pendiente_autorizacion' && record.type === 'consultation' && (
-                <Tooltip title="Autorizar Terapias">
-                  <CustomButton
-                    type="text"
-                    icon={<FileProtectOutlined />}
-                    onClick={() => handleOpenAuthorizeTherapyModal(record)}
-                    style={{ color: '#1890ff' }}
-                  />
-                </Tooltip>
-              )}
-=======
               {record.status === 'completada' &&
                 record.type === 'consultation' && (
                   <Tooltip title="Autorizar Terapias">
@@ -321,7 +309,6 @@ export const ConsultAppointments = () => {
                     />
                   </Tooltip>
                 )}
->>>>>>> main
             </>
           )}
 

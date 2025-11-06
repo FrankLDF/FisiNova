@@ -45,6 +45,8 @@ import { ConsultInsurances } from '../features/insurances/pages/ConsultInsurance
 import InsuranceReportsDashboard from '../features/Reports/pages/InsuranceReportsDashboard'
 import { PatientForm } from '../features/patient/pages/PatientForm'
 import { ConsultPatients } from '../features/patient/pages/ConsultPatients'
+import { PATH_BACKUP_MANAGEMENT } from '../features/backup/menu/backup'
+import { BackupManagement } from '../features/backup/pages/BackupManagement'
 
 const AppRoutes = () => {
   const { user } = useAuth()
@@ -448,6 +450,17 @@ const AppRoutes = () => {
           <PrivateRoutes>
             <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.SECRETARY]}>
               <PatientForm />
+            </RoleProtectedRoute>
+          </PrivateRoutes>
+        }
+      />
+
+      <Route
+        path={PATH_BACKUP_MANAGEMENT}
+        element={
+          <PrivateRoutes>
+            <RoleProtectedRoute allowedRoles={[Rol.ADMIN]}>
+              <BackupManagement />
             </RoleProtectedRoute>
           </PrivateRoutes>
         }

@@ -1,75 +1,101 @@
 // src/features/consultation/models/medicalRecord.ts
 export interface MedicalRecord {
-  id?: number;
-  appointment_id: number;
-  patient_id: number;
-  employee_id: number;
-  requires_therapy: boolean;
+  id?: number
+  appointment_id: number
+  patient_id: number
+  employee_id: number
+  requires_therapy: boolean
 
   // Motivo de consulta
-  chief_complaint?: string;
-  current_illness?: string;
+  chief_complaint?: string
+  current_illness?: string
 
   // Signos vitales
-  blood_pressure_systolic?: number;
-  blood_pressure_diastolic?: number;
-  heart_rate?: number;
-  temperature?: number;
-  respiratory_rate?: number;
-  weight?: number;
-  height?: number;
-  bmi?: number;
-  oxygen_saturation?: number;
+  blood_pressure_systolic?: number
+  blood_pressure_diastolic?: number
+  heart_rate?: number
+  temperature?: number
+  respiratory_rate?: number
+  weight?: number
+  height?: number
+  bmi?: number
+  oxygen_saturation?: number
 
   // Antecedentes personales
-  smokes?: boolean;
-  smoking_frequency?: string;
-  drinks_alcohol?: boolean;
-  alcohol_frequency?: string;
-  uses_drugs?: boolean;
-  drug_type?: string;
-  has_diabetes?: boolean;
-  has_hypertension?: boolean;
-  has_asthma?: boolean;
-  other_conditions?: string;
-  previous_surgeries?: string;
-  current_medications?: string;
+  smokes?: boolean
+  smoking_frequency?: string
+  drinks_alcohol?: boolean
+  alcohol_frequency?: string
+  uses_drugs?: boolean
+  drug_type?: string
+  has_diabetes?: boolean
+  has_hypertension?: boolean
+  has_asthma?: boolean
+  other_conditions?: string
+  previous_surgeries?: string
+  current_medications?: string
 
   // Antecedentes familiares
-  family_history?: string;
+  family_history?: string
 
   // Alergias
-  allergies?: string;
+  allergies?: string
 
   // Examen físico
-  physical_exam?: string;
+  physical_exam?: string
 
   // Diagnósticos y procedimientos
-  diagnosis_ids?: number[];
-  diagnosis_notes?: string;
-  procedure_ids?: number[];
-  procedure_notes?: string[];
-  diagnostics?: Array<{ id: number; code: string; description: string }>;
-  procedures?: Array<{ id: number; code: string; description: string }>;
+  diagnosis_ids?: number[]
+  diagnosis_notes?: string
+  procedure_ids?: number[]
+  procedure_notes?: string[]
+  diagnostics?: Array<{ id: number; code: string; description: string }>
+  procedures?: Array<{ id: number; code: string; description: string }>
 
   // Plan y tratamiento
-  therapy_reason?: string;
-  treatment_plan?: string;
-  prescriptions?: string;
-  recommendations?: string;
-  therapy_sessions_needed?: number;
+  therapy_reason?: string
+  treatment_plan?: string
+  prescriptions?: string
+  recommendations?: string
+  therapy_sessions_needed?: number
 
   // Notas generales
-  general_notes?: string;
+  general_notes?: string
 
-  active?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  active?: boolean
+  created_at?: string
+  updated_at?: string
+  procedure_id?: number
+  procedure?: {
+    id: number
+    procedure_details: Array<{
+      id: number
+      procedure_standard_id: number
+      sessions_authorized: number
+      sessions_completed: number
+      status: string
+      procedure_standard?: {
+        id: number
+        code: string
+        description: string
+      }
+    }>
+    procedure_diagnostics: Array<{
+      id: number
+      diagnostic_id: number
+      diagnostic?: {
+        id: number
+        code: string
+        description: string
+      }
+    }>
+  }
+  sessions_per_procedure?: Record<number, number>
 }
 
 export interface ConsultationStats {
-  pending: number;
-  in_progress: number;
-  completed_today: number;
-  total_today: number;
+  pending: number
+  in_progress: number
+  completed_today: number
+  total_today: number
 }

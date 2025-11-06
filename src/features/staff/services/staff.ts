@@ -9,33 +9,33 @@ import type {
   StaffFilters,
   ScheduleTemplateFilters,
   StaffScheduleFilters,
-} from '../models/staff'
+} from '../models/employee'
 
 class StaffService {
   // ========== STAFF ==========
   async getStaff(filters: StaffFilters = {}) {
     const params = buildQueryParams(filters)
-    const res = await serverCore.get(`/staff?${params}`)
+    const res = await serverCore.get(`/employees?${params}`)
     return res.data
   }
 
   async getStaffById(id: number) {
-    const res = await serverCore.get(`/staff/${id}`)
+    const res = await serverCore.get(`/employees/${id}`)
     return res.data
   }
 
   async createStaff(data: CreateStaffRequest) {
-    const res = await serverCore.post('/staff', data)
+    const res = await serverCore.post('/employees', data)
     return res.data
   }
 
   async updateStaff(id: number, data: Partial<CreateStaffRequest>) {
-    const res = await serverCore.put(`/staff/${id}`, data)
+    const res = await serverCore.put(`/employees/${id}`, data)
     return res.data
   }
 
   async deleteStaff(id: number) {
-    const res = await serverCore.delete(`/staff/${id}`)
+    const res = await serverCore.delete(`/employees/${id}`)
     return res.data
   }
 
@@ -72,17 +72,17 @@ class StaffService {
   // ========== STAFF SCHEDULES ==========
   async getStaffSchedules(filters: StaffScheduleFilters = {}) {
     const params = buildQueryParams(filters)
-    const res = await serverCore.get(`/staff-schedules?${params}`)
+    const res = await serverCore.get(`/employee-schedules?${params}`)
     return res.data
   }
 
   async getStaffScheduleById(id: number) {
-    const res = await serverCore.get(`/staff-schedules/${id}`)
+    const res = await serverCore.get(`/employee-schedules/${id}`)
     return res.data
   }
 
   async createStaffSchedule(data: CreateStaffScheduleRequest) {
-    const res = await serverCore.post('/staff-schedules', data)
+    const res = await serverCore.post('/employee-schedules', data)
     return res.data
   }
 
@@ -90,12 +90,12 @@ class StaffService {
     id: number,
     data: Partial<CreateStaffScheduleRequest>
   ) {
-    const res = await serverCore.put(`/staff-schedules/${id}`, data)
+    const res = await serverCore.put(`/employee-schedules/${id}`, data)
     return res.data
   }
 
   async deleteStaffSchedule(id: number) {
-    const res = await serverCore.delete(`/staff-schedules/${id}`)
+    const res = await serverCore.delete(`/employee-schedules/${id}`)
     return res.data
   }
 
@@ -105,7 +105,7 @@ class StaffService {
       params.append('start_date', startDate)
     }
     const res = await serverCore.get(
-      `/staff/${staffId}/weekly-schedule?${params.toString()}`
+      `/employee/${staffId}/weekly-schedule?${params.toString()}`
     )
     return res.data
   }

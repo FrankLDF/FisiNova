@@ -30,13 +30,17 @@ class ConsultationService {
     const res = await serverCore.get(`/medical-records/patient/${patientId}/history`)
     return res.data
   }
-
-  async createMedicalRecord(data: MedicalRecord) {
+  async createMedicalRecord(
+    data: MedicalRecord & { sessions_per_procedure?: Record<number, number> }
+  ) {
     const res = await serverCore.post('/medical-records', data)
     return res.data
   }
 
-  async updateMedicalRecord(id: number, data: Partial<MedicalRecord>) {
+  async updateMedicalRecord(
+    id: number,
+    data: Partial<MedicalRecord> & { sessions_per_procedure?: Record<number, number> }
+  ) {
     const res = await serverCore.put(`/medical-records/${id}`, data)
     return res.data
   }
@@ -85,7 +89,7 @@ class ConsultationService {
       diagnosis_ids: data.diagnosis_ids,
       procedure_ids: data.procedure_ids,
       general_notes: data.notes,
-      requires_therapy: data.requires_therapy, 
+      requires_therapy: data.requires_therapy,
     }
 
     const res = await serverCore.post('/medical-records', medicalRecord)

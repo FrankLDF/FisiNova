@@ -16,7 +16,7 @@ import { CustomConfirm } from '../../../components/pop-confirm/CustomConfirm'
 import { useCustomMutation } from '../../../hooks/UseCustomMutation'
 import { showNotification } from '../../../utils/showNotification'
 import staffService from '../services/staff'
-import type { Staff, StaffFilters } from '../models/staff'
+import type { Staff, StaffFilters } from '../models/employee'
 import type { ColumnsType } from 'antd/es/table'
 import { showHandleError } from '../../../utils/handleError'
 

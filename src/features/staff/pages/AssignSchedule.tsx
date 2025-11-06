@@ -26,8 +26,8 @@ import { showNotification } from '../../../utils/showNotification'
 import staffService from '../services/staff'
 import { ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import { showHandleError } from '../../../utils/handleError'
-import type { Staff, ScheduleTemplate, Cubicle } from '../models/staff'
-import { DAYS_OPTIONS, STATUS_OPTIONS } from '../models/staff'
+import type { Employee, ScheduleTemplate, Cubicle } from '../models/employee'
+import { DAYS_OPTIONS, STATUS_OPTIONS } from '../models/employee'
 import { CustomInput } from '../../../components/input/CustomInput'
 
 const { Title, Text } = Typography
@@ -40,7 +40,7 @@ export const AssignSchedule = () => {
   const [current, setCurrent] = useState(0)
 
   // States
-  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [selectedTemplate, setSelectedTemplate] =
     useState<ScheduleTemplate | null>(null)
   const [assignmentType, setAssignmentType] =
@@ -50,7 +50,7 @@ export const AssignSchedule = () => {
   const [loadingTemplates, setLoadingTemplates] = useState(false)
   const [loadingCubicles, setLoadingCubicles] = useState(false)
 
-  const [staffList, setStaffList] = useState<Staff[]>([])
+  const [employeeList, setEmployeeList] = useState<Employee[]>([])
   const [templatesList, setTemplatesList] = useState<ScheduleTemplate[]>([])
   const [cubiclesList, setCubiclesList] = useState<Cubicle[]>([])
 
@@ -65,10 +65,10 @@ export const AssignSchedule = () => {
       setLoadingStaff(true)
       const response = await staffService.getStaff({ active: true })
       const staffData = response?.data?.data || response?.data || []
-      setStaffList(Array.isArray(staffData) ? staffData : [])
+      setEmployeeList(Array.isArray(staffData) ? staffData : [])
     } catch (error) {
       showNotification({ type: 'error', message: 'Error al cargar personal' })
-      setStaffList([])
+      setEmployeeList([])
     } finally {
       setLoadingStaff(false)
     }
@@ -110,7 +110,7 @@ export const AssignSchedule = () => {
         message: 'Horario asignado exitosamente',
       })
       form.resetFields()
-      setSelectedStaff(null)
+      setSelectedEmployee(null)
       setSelectedTemplate(null)
       setCurrent(0)
     },
@@ -119,10 +119,10 @@ export const AssignSchedule = () => {
     },
   })
 
-  const handleStaffChange = (staffId: number) => {
-    const staff = staffList.find((s) => s.id === staffId)
-    setSelectedStaff(staff || null)
-    form.setFieldValue('staff_id', staffId)
+  const handleEmployeeChange = (employeeId: number) => {
+    const employee = employeeList.find((e) => e.id === employeeId)
+    setSelectedEmployee(employee || null)
+    form.setFieldValue('employee_id', employeeId)
   }
 
   const handleTemplateChange = (templateId: number) => {
@@ -154,7 +154,7 @@ export const AssignSchedule = () => {
 
   const onFinish = (values: any) => {
     try {
-      if (!values.staff_id || !values.schedule_template_id) {
+      if (!values.employee_id || !values.schedule_template_id) {
         showNotification({
           type: 'error',
           message: 'Debe seleccionar personal y horario',
@@ -163,11 +163,11 @@ export const AssignSchedule = () => {
       }
 
       const assignmentData: any = {
-        staff_id: values.staff_id,
+        employee_id: values.employee_id,
         schedule_template_id: values.schedule_template_id,
         cubicle_id: values.cubicle_id || null,
         is_override: values.is_override || false,
-        original_staff_id: values.original_staff_id || null,
+        original_employee_id: values.original_employee_id || null,
         status: values.status || 'active',
         notes: values.notes,
       }
@@ -225,10 +225,10 @@ export const AssignSchedule = () => {
     form
       .validateFields()
       .then(() => {
-        const staffId = form.getFieldValue('staff_id')
+        const employeeId = form.getFieldValue('employee_id')
         const templateId = form.getFieldValue('schedule_template_id')
 
-        if (current === 0 && !staffId) {
+        if (current === 0 && !employeeId) {
           showNotification({
             type: 'warning',
             message: 'Debe seleccionar un personal',
@@ -288,40 +288,40 @@ export const AssignSchedule = () => {
                   }
                   style={{ marginBottom: 16 }}
                 >
-                  <CustomFormItem label="Personal" name="staff_id" required>
+                  <CustomFormItem label="Personal" name="employee_id" required>
                     <CustomSelect
                       placeholder="Seleccionar personal..."
                       loading={loadingStaff}
                       showSearch
                       optionFilterProp="children"
-                      onChange={handleStaffChange}
+                      onChange={handleEmployeeChange}
                       size="large"
                     >
-                      {staffList.map((staff) => (
-                        <Option key={staff.id} value={staff.id!}>
-                          {`${staff.firstname} ${staff.lastname} - ${
-                            staff.position?.name || 'Sin posición'
+                      {employeeList.map((employee) => (
+                        <Option key={employee.id} value={employee.id!}>
+                          {`${employee.firstname} ${employee.lastname} - ${
+                            employee.position?.name || 'Sin posición'
                           }`}
                         </Option>
                       ))}
                     </CustomSelect>
                   </CustomFormItem>
 
-                  {selectedStaff && (
+                  {selectedEmployee && (
                     <Card
                       size="small"
                       style={{ background: '#e6f7ff', marginTop: 16 }}
                     >
                       <Space direction="vertical" size={4}>
                         <Text strong>
-                          {selectedStaff.firstname} {selectedStaff.lastname}
+                          {selectedEmployee.firstname} {selectedEmployee.lastname}
                         </Text>
                         <Text type="secondary">
-                          Posición: {selectedStaff.position?.name}
+                          Posición: {selectedEmployee.position?.name}
                         </Text>
-                        {selectedStaff.email && (
+                        {selectedEmployee.email && (
                           <Text type="secondary">
-                            Email: {selectedStaff.email}
+                            Email: {selectedEmployee.email}
                           </Text>
                         )}
                       </Space>
@@ -341,7 +341,7 @@ export const AssignSchedule = () => {
                   }
                   style={{ marginBottom: 16 }}
                 >
-                  <CustomFormItem name="staff_id" hidden>
+                  <CustomFormItem name="employee_id" hidden>
                     <CustomSelect />
                   </CustomFormItem>
 
@@ -395,7 +395,7 @@ export const AssignSchedule = () => {
               {/* ========== PASO 3: CONFIGURACIÓN ========== */}
               {current === 2 && (
                 <>
-                  <CustomFormItem name="staff_id" hidden>
+                  <CustomFormItem name="employee_id" hidden>
                     <CustomSelect />
                   </CustomFormItem>
                   <CustomFormItem name="schedule_template_id" hidden>

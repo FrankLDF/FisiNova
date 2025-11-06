@@ -1,6 +1,6 @@
-// src/features/staff/models/staff.ts
+// src/features/staff/models/employee.ts
 
-export interface Staff {
+export interface Employee {
   id?: number
   firstname: string
   lastname: string
@@ -20,31 +20,31 @@ export interface Staff {
     description?: string
   }
 
-  staff_schedules?: StaffSchedule[]
+  employee_schedules?: EmployeeSchedule[]
 }
 
-export interface StaffSchedule {
+export interface EmployeeSchedule {
   id?: number
-  staff_id: number
-  schedule_template_id: number // ✅ CAMBIO: Ahora apunta al template completo
-  selected_days?: number[] | null // ✅ NUEVO: [1,2,3] para Lun,Mar,Mie. null=todos
+  employee_id: number // Cambio de staff_id
+  schedule_template_id: number
+  selected_days?: number[] | null
   cubicle_id?: number
-  start_date?: string // ✅ RENOMBRADO: Fecha inicio de vigencia
+  start_date?: string
   end_date?: string
-  specific_date?: string // ✅ NUEVO: Para asignaciones puntuales
-  specific_start_time?: string // ✅ NUEVO: Hora inicio (solo si specific_date)
-  specific_end_time?: string // ✅ NUEVO: Hora fin (solo si specific_date)
+  specific_date?: string
+  specific_start_time?: string
+  specific_end_time?: string
   is_override?: boolean
-  original_staff_id?: number
+  original_employee_id?: number // Cambio de original_staff_id
   status?: 'active' | 'cancelled' | 'completed'
   notes?: string
   created_at?: string
   updated_at?: string
 
-  staff?: Staff
-  schedule_template?: ScheduleTemplate // ✅ CAMBIO: Ahora trae el template completo
+  employee?: Employee
+  schedule_template?: ScheduleTemplate
   cubicle?: Cubicle
-  original_staff?: Staff
+  original_employee?: Employee
 }
 
 export interface ScheduleTemplate {
@@ -106,7 +106,7 @@ export interface CreateScheduleTemplateRequest {
 }
 
 export interface CreateStaffScheduleRequest {
-  staff_id: number
+  employee_id: number
   schedule_template_id: number // ✅ CAMBIO: Template completo
   selected_days?: number[] | null // ✅ NUEVO: Días específicos (opcional)
   cubicle_id?: number
@@ -116,12 +116,12 @@ export interface CreateStaffScheduleRequest {
   specific_start_time?: string // ✅ NUEVO: Hora inicio puntual
   specific_end_time?: string // ✅ NUEVO: Hora fin puntual
   is_override?: boolean
-  original_staff_id?: number
+  original_employee_id?: number
   status?: string
   notes?: string
 }
 
-export interface StaffFilters {
+export interface EmployeeFilters {
   active?: boolean | string
   search?: string
   position_id?: number
@@ -133,8 +133,8 @@ export interface ScheduleTemplateFilters {
   paginate?: number
 }
 
-export interface StaffScheduleFilters {
-  staff_id?: number
+export interface EmployeeScheduleFilters {
+  employee_id?: number
   cubicle_id?: number
   status?: string
   is_recurring?: boolean | string

@@ -95,6 +95,21 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
               min: 6,
               message: 'La contraseña debe tener al menos 6 caracteres',
             },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const current = getFieldValue('current_password')
+                if (
+                  !value ||
+                  !current ||
+                  current.toLowerCase() !== value.toLowerCase()
+                ) {
+                  return Promise.resolve()
+                }
+                return Promise.reject(
+                  new Error('La nueva contraseña no puede ser igual a la anterior')
+                )
+              },
+            }),
           ]}
         >
           <CustomInput.Password

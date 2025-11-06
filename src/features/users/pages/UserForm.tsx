@@ -243,6 +243,63 @@ export const UserForm = () => {
   const isPending = isCreating || isUpdating
   const isViewMode = mode === 'view' && !isEditing
 
+  const [existingUsernames, setExistingUsernames] = useState<string[]>([])
+  console.log({ existingUsernames })
+  useEffect(() => {
+    // Cargar todos los nombres de usuario existentes
+    const fetchUsernames = async () => {
+      try {
+        const response = await userService.getUsers()
+        // Extrae solo los nombres de usuario
+        const usernames = Array.isArray(response?.data?.data)
+          ? response.data.data.map((u: any) => u.name?.toLowerCase())
+          : []
+        setExistingUsernames(usernames)
+      } catch (error) {
+        setExistingUsernames([])
+      }
+    }
+    fetchUsernames()
+  }, [])
+
+  // Función para generar nombre de usuario único
+  const generateUniqueUsername = (firstName: string, lastName: string) => {
+    let username = ''
+    for (let i = 1; i <= firstName.length; i++) {
+      username = `${firstName.substring(0, i)}${lastName}`.toLowerCase()
+      if (!existingUsernames.includes(username)) {
+        return username
+      }
+    }
+    // Si todos existen, agrega un número al final
+    let count = 1
+    while (existingUsernames.includes(`${username}${count}`)) {
+      count++
+    }
+    return `${username}${count}`
+  }
+
+  const handleValuesChange = (changedValues: any, allValues: any) => {
+    if (
+      mode === 'create' &&
+      employees.length > 0 &&
+      'employee_id' in changedValues &&
+      changedValues.employee_id
+    ) {
+      const emp = employees.find((e) => e.id === changedValues.employee_id)
+      if (emp) {
+        const firstName = emp.firstname?.split(' ')[0] || ''
+        const lastName = emp.lastname?.split(' ')[0] || ''
+        const username = generateUniqueUsername(firstName, lastName)
+        const email = `${username}@fisinova.com`
+        form.setFieldsValue({
+          name: username,
+          email: email,
+        })
+      }
+    }
+  }
+
   if (loadingUser && id) {
     return (
       <div style={{ padding: '0 16px' }}>
@@ -338,6 +395,7 @@ export const UserForm = () => {
               layout="vertical"
               onFinish={onFinish}
               initialValues={{ active: true }}
+              onValuesChange={handleValuesChange} // <-- Agrega esto
             >
               {/* PASO 1: PERSONAL */}
               <Card
@@ -345,15 +403,16 @@ export const UserForm = () => {
                 title={
                   <Space>
                     <TeamOutlined />
-                    <span>Paso 1: Personal (Opcional)</span>
+                    <span>Paso 1: Personal</span>
                   </Space>
                 }
                 style={{ marginBottom: 16 }}
               >
                 <CustomFormItem
+                  required
                   label="Seleccionar Personal"
                   name="employee_id"
-                  extra="Solo empleados sin usuario asignado. Si no seleccionas, el usuario no estará vinculado."
+                  extra="Solo empleados sin usuario asignado."
                 >
                   <CustomSelect
                     placeholder="Buscar empleado..."
@@ -408,6 +467,7 @@ export const UserForm = () => {
                       required
                     >
                       <CustomInput
+                        disabled
                         prefix={<UserOutlined />}
                         placeholder="usuario.sistema"
                         readOnly={isViewMode}
@@ -429,6 +489,7 @@ export const UserForm = () => {
                       ]}
                     >
                       <CustomInput
+                        disabled
                         prefix={<MailOutlined />}
                         placeholder="usuario@ejemplo.com"
                         readOnly={isViewMode}

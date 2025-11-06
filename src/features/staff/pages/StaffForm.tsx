@@ -68,9 +68,13 @@ export const StaffForm = () => {
   }, [])
 
   useEffect(() => {
-    if (staffData?.data && id) {
-      const staff = staffData.data
+    // Limpiar el formulario al cambiar de usuario o modo
+    form.resetFields()
+  }, [id, mode])
 
+  useEffect(() => {
+    if (staffData?.data && id && (mode === 'edit' || mode === 'view')) {
+      const staff = staffData.data
       form.setFieldsValue({
         firstname: staff.firstname,
         lastname: staff.lastname,
@@ -83,7 +87,7 @@ export const StaffForm = () => {
         active: staff.active,
       })
     }
-  }, [staffData, form, id])
+  }, [staffData, form, id, mode])
 
   const loadPositions = async () => {
     try {
@@ -370,7 +374,7 @@ export const StaffForm = () => {
                     </CustomFormItem>
                   </Col>
 
-                  <Col xs={24} md={12}>
+                  {/* <Col xs={24} md={12}>
                     <CustomFormItem label="Estado" name="active">
                       <CustomSelect
                         placeholder="Estado del personal"
@@ -380,7 +384,7 @@ export const StaffForm = () => {
                         <Option value={false}>Inactivo</Option>
                       </CustomSelect>
                     </CustomFormItem>
-                  </Col>
+                  </Col> */}
                 </Row>
               </div>
 

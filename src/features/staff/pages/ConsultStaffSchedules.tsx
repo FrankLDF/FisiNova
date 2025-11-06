@@ -137,7 +137,7 @@ export const ConsultStaffSchedules = () => {
 
         // Asignación recurrente
         if (!record.selected_days || record.selected_days.length === 0) {
-          return <Tag color="purple">Todos los días del template</Tag>
+          return <Tag color="purple">Horario Completo</Tag>
         }
 
         return (
@@ -233,6 +233,7 @@ export const ConsultStaffSchedules = () => {
     {
       title: 'Cubículo',
       key: 'cubicle',
+      width: 200,
       render: (_, record) =>
         record.cubicle ? (
           <Tooltip title={record.cubicle.location}>

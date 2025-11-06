@@ -37,6 +37,7 @@ import {
 } from '@ant-design/icons'
 import { showHandleError } from '../../../utils/handleError'
 import type { Role } from '../models/user'
+import { useAuth } from '../../../store/auth/AuthContext'
 
 const { Text } = Typography
 
@@ -54,6 +55,8 @@ export const UserForm = () => {
 
   const [mode, setMode] = useState<FormMode>('create')
   const [isEditing, setIsEditing] = useState(false)
+
+  const { user: userLoged } = useAuth()
 
   useEffect(() => {
     const currentPath = window.location.pathname
@@ -82,6 +85,19 @@ export const UserForm = () => {
     loadRoles()
     loadAvailableEmployees()
   }, [])
+
+  useEffect(() => {
+    // Si hay datos de usuario y empleado vinculado, lo agregamos a la lista si no está
+    if (userData?.data?.employee && id) {
+      setEmployees((prev) => {
+        const exists = prev.some((e) => e.id === userData.data.employee.id)
+        if (!exists) {
+          return [userData.data.employee, ...prev]
+        }
+        return prev
+      })
+    }
+  }, [userData, id])
 
   useEffect(() => {
     if (userData?.data && id) {
@@ -253,6 +269,7 @@ export const UserForm = () => {
                 {mode === 'view' && (
                   <Col>
                     <CustomButton
+                      disabled={userLoged?.id === Number(id)}
                       type={isEditing ? 'default' : 'primary'}
                       icon={isEditing ? <EyeOutlined /> : <EditOutlined />}
                       onClick={toggleEditMode}
@@ -468,7 +485,7 @@ export const UserForm = () => {
 
                 <Divider style={{ margin: '16px 0' }} />
 
-                <CustomFormItem name="active" valuePropName="checked">
+                {/* <CustomFormItem name="active" valuePropName="checked">
                   <Space>
                     <input
                       type="checkbox"
@@ -481,7 +498,7 @@ export const UserForm = () => {
                     />
                     <Text strong>Usuario Activo</Text>
                   </Space>
-                </CustomFormItem>
+                </CustomFormItem> */}
               </Card>
 
               {(mode === 'create' || isEditing) && (

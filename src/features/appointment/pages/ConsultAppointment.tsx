@@ -1,5 +1,15 @@
 // src/features/appointment/pages/ConsultAppointment.tsx (actualizado)
-import { Card, Table, Row, Col, Select, DatePicker, Space, Tag, Tooltip } from 'antd'
+import {
+  Card,
+  Table,
+  Row,
+  Col,
+  Select,
+  DatePicker,
+  Space,
+  Tag,
+  Tooltip,
+} from 'antd'
 import {
   EditOutlined,
   DeleteOutlined,
@@ -39,18 +49,26 @@ export const ConsultAppointments = () => {
   const { user } = useAuth()
 
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
-  const [authorizeTherapyModalOpen, setAuthorizeTherapyModalOpen] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [authorizeTherapyModalOpen, setAuthorizeTherapyModalOpen] =
+    useState(false)
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null)
   const [medicalRecord, setMedicalRecord] = useState<any>(null)
 
   if (user && !(isAdmin(user.rols) || isSecretary(user.rols))) {
     filters.employee_id = user.id
   }
 
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null)
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(
+    null
+  )
 
-  const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined)
-  const [selectedActive, setSelectedActive] = useState<string | undefined>(undefined)
+  const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
+    undefined
+  )
+  const [selectedActive, setSelectedActive] = useState<string | undefined>(
+    undefined
+  )
 
   const {
     data: appointmentsData,
@@ -82,40 +100,47 @@ export const ConsultAppointments = () => {
     },
   })
 
-  const { mutate: confirmAppointment, isPending: isConfirming } = useCustomMutation({
-    execute: ({ id, data }: { id: number; data: ConfirmAppointmentRequest }) =>
-      authorizationService.confirmAppointment(id, data),
-    onSuccess: () => {
-      showNotification({
-        type: 'success',
-        message: 'Cita confirmada exitosamente',
-      })
-      setConfirmModalOpen(false)
-      setSelectedAppointment(null)
-      refetch()
-    },
-    onError: (err) => {
-      showHandleError(err)
-    },
-  })
+  const { mutate: confirmAppointment, isPending: isConfirming } =
+    useCustomMutation({
+      execute: ({
+        id,
+        data,
+      }: {
+        id: number
+        data: ConfirmAppointmentRequest
+      }) => authorizationService.confirmAppointment(id, data),
+      onSuccess: () => {
+        showNotification({
+          type: 'success',
+          message: 'Cita confirmada exitosamente',
+        })
+        setConfirmModalOpen(false)
+        setSelectedAppointment(null)
+        refetch()
+      },
+      onError: (err) => {
+        showHandleError(err)
+      },
+    })
 
-  const { mutate: authorizeTherapy, isPending: isAuthorizingTherapy } = useCustomMutation({
-    execute: ({ id, data }: { id: number; data: any }) =>
-      authorizationService.authorizeTherapy(id, data),
-    onSuccess: () => {
-      showNotification({
-        type: 'success',
-        message: 'Terapias autorizadas y citas generadas exitosamente',
-      })
-      setAuthorizeTherapyModalOpen(false)
-      setSelectedAppointment(null)
-      setMedicalRecord(null)
-      refetch()
-    },
-    onError: (err) => {
-      showHandleError(err)
-    },
-  })
+  const { mutate: authorizeTherapy, isPending: isAuthorizingTherapy } =
+    useCustomMutation({
+      execute: ({ id, data }: { id: number; data: any }) =>
+        authorizationService.authorizeTherapy(id, data),
+      onSuccess: () => {
+        showNotification({
+          type: 'success',
+          message: 'Terapias autorizadas y citas generadas exitosamente',
+        })
+        setAuthorizeTherapyModalOpen(false)
+        setSelectedAppointment(null)
+        setMedicalRecord(null)
+        refetch()
+      },
+      onError: (err) => {
+        showHandleError(err)
+      },
+    })
 
   const statusColors: Record<string, string> = {
     programada: 'blue',
@@ -198,7 +223,9 @@ export const ConsultAppointments = () => {
         const startTime = record.start_time
           ? dayjs(record.start_time, 'HH:mm').format('HH:mm')
           : '--:--'
-        const endTime = record.end_time ? dayjs(record.end_time, 'HH:mm').format('HH:mm') : '--:--'
+        const endTime = record.end_time
+          ? dayjs(record.end_time, 'HH:mm').format('HH:mm')
+          : '--:--'
 
         return (
           <span>
@@ -213,7 +240,9 @@ export const ConsultAppointments = () => {
       render: (_, record) => (
         <span>
           {record.employee
-            ? `${record.employee.firstname || ''} ${record.employee.lastname || ''}`
+            ? `${record.employee.firstname || ''} ${
+                record.employee.lastname || ''
+              }`
             : 'Sin asignar'}
         </span>
       ),
@@ -224,7 +253,9 @@ export const ConsultAppointments = () => {
       render: (_, record) => (
         <span>
           {record.patient
-            ? `${record.patient.firstname || ''} ${record.patient.lastname || ''}`
+            ? `${record.patient.firstname || ''} ${
+                record.patient.lastname || ''
+              }`
             : record.guest_firstname || record.guest_lastname
             ? `Nuevo: ${record.guest_firstname} ${record.guest_lastname}`
             : 'Sin asignar'}
@@ -235,7 +266,9 @@ export const ConsultAppointments = () => {
       title: 'Estado',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => <Tag color={getStatusColor(status)}>{status}</Tag>,
+      render: (status: string) => (
+        <Tag color={getStatusColor(status)}>{status}</Tag>
+      ),
     },
     {
       title: 'Tipo',
@@ -265,6 +298,7 @@ export const ConsultAppointments = () => {
                 </Tooltip>
               )}
 
+<<<<<<< HEAD
               {record.status === 'pendiente_autorizacion' && record.type === 'consultation' && (
                 <Tooltip title="Autorizar Terapias">
                   <CustomButton
@@ -275,6 +309,19 @@ export const ConsultAppointments = () => {
                   />
                 </Tooltip>
               )}
+=======
+              {record.status === 'completada' &&
+                record.type === 'consultation' && (
+                  <Tooltip title="Autorizar Terapias">
+                    <CustomButton
+                      type="text"
+                      icon={<FileProtectOutlined />}
+                      onClick={() => handleOpenAuthorizeTherapyModal(record)}
+                      style={{ color: '#1890ff' }}
+                    />
+                  </Tooltip>
+                )}
+>>>>>>> main
             </>
           )}
 
@@ -293,7 +340,10 @@ export const ConsultAppointments = () => {
                   type="text"
                   icon={<EditOutlined />}
                   onClick={() => handleEditAppointment(record.id!)}
-                  disabled={record.status === 'completada' || record.status === 'cancelada'}
+                  disabled={
+                    record.status === 'completada' ||
+                    record.status === 'cancelada'
+                  }
                 />
               </Tooltip>
 
@@ -310,7 +360,10 @@ export const ConsultAppointments = () => {
                     size="small"
                     danger
                     icon={<DeleteOutlined />}
-                    disabled={record.status === 'completada' || record.status === 'cancelada'}
+                    disabled={
+                      record.status === 'completada' ||
+                      record.status === 'cancelada'
+                    }
                   />
                 </Tooltip>
               </CustomConfirm>
@@ -335,11 +388,21 @@ export const ConsultAppointments = () => {
     setSelectedActive(undefined)
   }
 
+<<<<<<< HEAD
   const handleDateRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
     if (dates && dates[0] && dates[1]) {
       // Rango válido
       const start = dates[0].startOf('day')
       const end = dates[1].endOf('day')
+=======
+  const handleDateRangeChange = (
+    dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
+  ) => {
+    const validDates =
+      dates && dates[0] && dates[1]
+        ? ([dates[0], dates[1]] as [dayjs.Dayjs, dayjs.Dayjs])
+        : null
+>>>>>>> main
 
       setDateRange([start, end])
       setFilters((prev) => ({

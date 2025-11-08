@@ -20,7 +20,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons'
 import { showHandleError } from '../../../utils/handleError'
-import { DAYS_OPTIONS } from '../models/staff'
+import { DAYS_OPTIONS } from '../models/employee'
 import dayjs, { Dayjs } from 'dayjs'
 
 const { Title } = Typography

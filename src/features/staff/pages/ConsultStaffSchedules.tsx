@@ -17,10 +17,10 @@ import type {
   StaffSchedule,
   StaffScheduleFilters,
   Staff,
-} from '../models/staff'
+} from '../models/employee'
 import type { ColumnsType } from 'antd/es/table'
 import { showHandleError } from '../../../utils/handleError'
-import { DAY_OF_WEEK_MAP } from '../models/staff'
+import { DAY_OF_WEEK_MAP } from '../models/employee'
 import dayjs from 'dayjs'
 
 const { Option } = Select
@@ -344,8 +344,8 @@ export const ConsultStaffSchedules = () => {
                   loading={loadingStaff}
                   showSearch
                   optionFilterProp="children"
-                  value={filters.staff_id}
-                  onChange={(value) => handleFilterChange('staff_id', value)}
+                  value={filters.employee_id}
+                  onChange={(value) => handleFilterChange('employee_id', value)}
                 >
                   {staffList.map((staff) => (
                     <Option key={staff.id} value={staff.id!}>

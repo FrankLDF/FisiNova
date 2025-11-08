@@ -298,7 +298,7 @@ export const ConsultAppointments = () => {
                 </Tooltip>
               )}
 
-              {record.status === 'completada' &&
+              {record.status === 'pendiente_autorizacion' &&
                 record.type === 'consultation' && (
                   <Tooltip title="Autorizar Terapias">
                     <CustomButton

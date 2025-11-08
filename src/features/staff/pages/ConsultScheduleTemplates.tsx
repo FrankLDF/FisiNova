@@ -16,10 +16,10 @@ import { CustomConfirm } from '../../../components/pop-confirm/CustomConfirm'
 import { useCustomMutation } from '../../../hooks/UseCustomMutation'
 import { showNotification } from '../../../utils/showNotification'
 import staffService from '../services/staff'
-import type { ScheduleTemplate, ScheduleTemplateFilters } from '../models/staff'
+import type { ScheduleTemplate, ScheduleTemplateFilters } from '../models/employee'
 import type { ColumnsType } from 'antd/es/table'
 import { showHandleError } from '../../../utils/handleError'
-import { DAY_OF_WEEK_MAP } from '../models/staff'
+import { DAY_OF_WEEK_MAP } from '../models/employee'
 
 const { Search } = Input
 

@@ -140,7 +140,7 @@ const InsuranceReportsDashboard: React.FC = () => {
       if (!data.services || data.services.length === 0) {
         showNotification({
           type: 'warning',
-          message: `No se encontraron registrosNo hay servicios registrados para el período ${dateRange[0].format(
+          message: `No se encontraron registros. No hay servicios registrados para el período ${dateRange[0].format(
             'DD/MM/YYYY'
           )} - ${dateRange[1].format('DD/MM/YYYY')}`,
         })

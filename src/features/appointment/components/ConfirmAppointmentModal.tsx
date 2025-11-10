@@ -1,3 +1,6 @@
+// ============================================================
+// ARCHIVO: src/features/appointment/components/ConfirmAppointmentModal.tsx
+// ============================================================
 import React, { useState, useEffect } from 'react'
 import {
   Modal,
@@ -11,6 +14,7 @@ import {
   DatePicker,
   Row,
   Col,
+  InputNumber,
 } from 'antd'
 import {
   CheckCircleOutlined,
@@ -44,22 +48,30 @@ interface ConfirmAppointmentModalProps {
   loading?: boolean
 }
 
-export const ConfirmAppointmentModal: React.FC<
-  ConfirmAppointmentModalProps
-> = ({ open, onClose, onConfirm, appointment, insurances, loading }) => {
+export const ConfirmAppointmentModal: React.FC<ConfirmAppointmentModalProps> = ({
+  open,
+  onClose,
+  onConfirm,
+  appointment,
+  insurances,
+  loading,
+}) => {
   const [form] = Form.useForm()
   const [paymentType, setPaymentType] = useState<PaymentType>('insurance')
   const [showPatientSelector, setShowPatientSelector] = useState(false)
   const [showQuickRegister, setShowQuickRegister] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  const [insuranceAmount, setInsuranceAmount] = useState(0)
+  const [patientAmount, setPatientAmount] = useState(0)
+  const totalAmount = insuranceAmount + patientAmount
 
   // Determinar si la cita es consulta o terapia
   const isTherapy = appointment?.type === 'therapy'
   const isConsultation = appointment?.type === 'consultation'
 
-  // Determinar si requiere autorización previa
-  // SOLO terapia + seguro requiere autorización previa
+  // Determinar si requiere autorización previa y montos
   const requiresAuthorization = isTherapy && paymentType === 'insurance'
+  const requiresAmounts = isTherapy && paymentType === 'insurance'
 
   useEffect(() => {
     if (appointment && open) {
@@ -77,10 +89,15 @@ export const ConfirmAppointmentModal: React.FC<
         insurance_id: Number(appointment.insurance_id || selectedPatient?.insurance_id || 0),
         case_number: appointment.case_number,
         insurance_code: appointment.insurance_code,
+        authorization_date: dayjs(),
       })
       setPaymentType(initialPaymentType as PaymentType)
+
+      // Resetear montos
+      setInsuranceAmount(0)
+      setPatientAmount(0)
     }
-  }, [appointment, open, form])
+  }, [appointment, open, form, selectedPatient])
 
   const handlePaymentTypeChange = (e: any) => {
     const value = e.target.value as PaymentType
@@ -95,12 +112,17 @@ export const ConfirmAppointmentModal: React.FC<
         authorization_date: null,
         case_number: null,
       })
+      setInsuranceAmount(0)
+      setPatientAmount(0)
     } else if (value === 'workplace_risk') {
       form.setFieldsValue({
         authorization_number: null,
         insurance_id: null,
+        insurance_code: null,
         authorization_date: null,
       })
+      setInsuranceAmount(0)
+      setPatientAmount(0)
     } else if (value === 'insurance') {
       form.setFieldsValue({
         case_number: null,
@@ -110,10 +132,11 @@ export const ConfirmAppointmentModal: React.FC<
     }
   }
 
-  const handlePatientSelect = (patient: Patient | null) => {null
+  const handlePatientSelect = (patient: Patient | null) => {
     setSelectedPatient(patient)
     if (patient && patient.insurance) {
       form.setFieldValue('insurance_id', patient.insurance.id)
+      form.setFieldValue('insurance_code', patient.insurance_code)
     }
   }
 
@@ -140,23 +163,24 @@ export const ConfirmAppointmentModal: React.FC<
       notes: values.notes,
     }
 
-    // Solo incluir datos de seguro si es por seguro
+    // Para seguro
     if (values.payment_type === 'insurance') {
       data.insurance_id = values.insurance_id
       data.insurance_code = values.insurance_code
 
-      // Solo incluir autorización si es TERAPIA por seguro
+      // Solo para TERAPIA + SEGURO
       if (isTherapy) {
         data.authorization_number = values.authorization_number
         if (values.authorization_date) {
-          data.authorization_date = dayjs(values.authorization_date).format(
-            'YYYY-MM-DD'
-          )
+          data.authorization_date = dayjs(values.authorization_date).format('YYYY-MM-DD')
         }
+        data.insurance_amount = insuranceAmount
+        data.patient_amount = patientAmount
+        data.total_amount = totalAmount
       }
     }
 
-    // Solo incluir case_number si es riesgo laboral
+    // Para riesgo laboral
     if (values.payment_type === 'workplace_risk') {
       data.case_number = values.case_number
     }
@@ -168,6 +192,8 @@ export const ConfirmAppointmentModal: React.FC<
     form.resetFields()
     setSelectedPatient(null)
     setPaymentType('insurance')
+    setInsuranceAmount(0)
+    setPatientAmount(0)
     onClose()
   }
 
@@ -181,28 +207,18 @@ export const ConfirmAppointmentModal: React.FC<
         title={
           <Space>
             <CheckCircleOutlined style={{ color: '#52c41a' }} />
-            <span>
-              Confirmar Entrada - {isTherapy ? 'Terapia' : 'Consulta'}
-            </span>
+            <span>Confirmar Entrada - {isTherapy ? 'Terapia' : 'Consulta'}</span>
           </Space>
         }
         open={open}
         onCancel={handleCancel}
-        width={700}
+        width={800}
         footer={null}
         destroyOnClose
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{
-            payment_type: 'insurance',
-            authorization_date: dayjs(),
-          }}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           {/* Información de la Cita */}
-          <Card size="small" style={{ marginBottom: 16 }}>
+          <Card size="small" style={{ marginBottom: 16, background: '#f0f5ff' }}>
             <Space direction="vertical" style={{ width: '100%' }} size="small">
               <Title level={5} style={{ margin: 0 }}>
                 <CalendarOutlined /> Información de la Cita
@@ -210,18 +226,13 @@ export const ConfirmAppointmentModal: React.FC<
               <Row gutter={16}>
                 <Col span={12}>
                   <Text type="secondary">Tipo:</Text>{' '}
-                  <Text
-                    strong
-                    style={{ color: isTherapy ? '#1890ff' : '#52c41a' }}
-                  >
+                  <Text strong style={{ color: isTherapy ? '#1890ff' : '#52c41a' }}>
                     {isTherapy ? 'TERAPIA' : 'CONSULTA'}
                   </Text>
                 </Col>
                 <Col span={12}>
                   <Text type="secondary">Fecha:</Text>{' '}
-                  <Text strong>
-                    {dayjs(appointment.appointment_date).format('DD/MM/YYYY')}
-                  </Text>
+                  <Text strong>{dayjs(appointment.appointment_date).format('DD/MM/YYYY')}</Text>
                 </Col>
               </Row>
               <Row gutter={16}>
@@ -261,8 +272,7 @@ export const ConfirmAppointmentModal: React.FC<
               {hasPatient ? (
                 <>
                   <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
-                    {selectedPatient?.firstname ||
-                      appointment.patient?.firstname}{' '}
+                    {selectedPatient?.firstname || appointment.patient?.firstname}{' '}
                     {selectedPatient?.lastname || appointment.patient?.lastname}
                   </Text>
                   <Space>
@@ -273,15 +283,11 @@ export const ConfirmAppointmentModal: React.FC<
                     )}
                     {(selectedPatient?.phone || appointment.patient?.phone) && (
                       <Text type="secondary">
-                        Tel:{' '}
-                        {selectedPatient?.phone || appointment.patient?.phone}
+                        Tel: {selectedPatient?.phone || appointment.patient?.phone}
                       </Text>
                     )}
                   </Space>
-                  <CustomButton
-                    size="small"
-                    onClick={() => setShowPatientSelector(true)}
-                  >
+                  <CustomButton size="small" onClick={() => setShowPatientSelector(true)}>
                     Cambiar Paciente
                   </CustomButton>
                 </>
@@ -295,10 +301,7 @@ export const ConfirmAppointmentModal: React.FC<
                     style={{ marginBottom: 8 }}
                   />
                   <Space>
-                    <CustomButton
-                      type="primary"
-                      onClick={() => setShowPatientSelector(true)}
-                    >
+                    <CustomButton type="primary" onClick={() => setShowPatientSelector(true)}>
                       Buscar Paciente Existente
                     </CustomButton>
                     <CustomButton onClick={() => setShowQuickRegister(true)}>
@@ -363,11 +366,7 @@ export const ConfirmAppointmentModal: React.FC<
 
               <Row gutter={16}>
                 <Col span={24}>
-                  <CustomFormItem
-                    label="Compañía de Seguro"
-                    name="insurance_id"
-                    required
-                  >
+                  <CustomFormItem label="Compañía de Seguro" name="insurance_id" required>
                     <CustomSelect
                       placeholder="Seleccionar seguro..."
                       showSearch
@@ -382,21 +381,18 @@ export const ConfirmAppointmentModal: React.FC<
                   </CustomFormItem>
                 </Col>
                 <Col span={24}>
-                <CustomFormItem
-                    label="Código de Seguro"
-                    name="insurance_code"
-                  >
+                  <CustomFormItem label="Código de Seguro" name="insurance_code">
                     <CustomInput placeholder="Código del seguro médico" disabled />
                   </CustomFormItem>
                 </Col>
               </Row>
 
-              {/* Campos de Autorización - SOLO para TERAPIA + SEGURO */}
+              {/* Campos de Autorización y Montos - SOLO para TERAPIA + SEGURO */}
               {requiresAuthorization && (
                 <>
                   <Alert
-                    message="Autorización Requerida"
-                    description="Las terapias por seguro requieren autorización previa"
+                    message="Autorización y Montos Requeridos"
+                    description="Las terapias por seguro requieren número de autorización y registro de montos de cobro"
                     type="info"
                     showIcon
                     style={{ marginBottom: 16 }}
@@ -414,22 +410,90 @@ export const ConfirmAppointmentModal: React.FC<
                     </Col>
 
                     <Col span={12}>
-                      <CustomFormItem
-                        label="Fecha de Autorización"
-                        name="authorization_date"
-                      >
+                      <CustomFormItem label="Fecha de Autorización" name="authorization_date">
                         <DatePicker
                           style={{ width: '100%' }}
                           format="DD/MM/YYYY"
                           placeholder="Seleccionar fecha"
-                          defaultValue={dayjs().format('YYYY-MM-DD')}
-                          disabledDate={(current) =>
-                            current && current < dayjs().startOf('day')
-                          }
+                          defaultValue={dayjs()}
                         />
                       </CustomFormItem>
                     </Col>
                   </Row>
+
+                  <Divider orientation="left">Distribución de Costos</Divider>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <CustomFormItem
+                        label="Monto Cubierto por Seguro"
+                        required
+                        tooltip="Monto que pagará la compañía de seguro"
+                      >
+                        <InputNumber
+                          style={{ width: '100%' }}
+                          min={0}
+                          step={10}
+                          precision={2}
+                          prefix="RD$"
+                          placeholder="0.00"
+                          value={insuranceAmount}
+                          onChange={(value) => setInsuranceAmount(value || 0)}
+                        />
+                      </CustomFormItem>
+                    </Col>
+                    <Col span={12}>
+                      <CustomFormItem
+                        label="Copago del Paciente"
+                        required
+                        tooltip="Monto que pagará el paciente (puede ser 0)"
+                      >
+                        <InputNumber
+                          style={{ width: '100%' }}
+                          min={0}
+                          step={10}
+                          precision={2}
+                          prefix="RD$"
+                          placeholder="0.00"
+                          value={patientAmount}
+                          onChange={(value) => setPatientAmount(value || 0)}
+                        />
+                      </CustomFormItem>
+                    </Col>
+                  </Row>
+
+                  <Card
+                    size="small"
+                    style={{
+                      background: '#f6ffed',
+                      marginTop: 16,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Space size="large">
+                      <div>
+                        <Text type="secondary">Seguro</Text>
+                        <br />
+                        <Text strong style={{ fontSize: 16, color: '#1890ff' }}>
+                          RD$ {insuranceAmount.toFixed(2)}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text type="secondary">Copago</Text>
+                        <br />
+                        <Text strong style={{ fontSize: 16, color: '#fa8c16' }}>
+                          RD$ {patientAmount.toFixed(2)}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text type="secondary">TOTAL</Text>
+                        <br />
+                        <Text strong style={{ fontSize: 20, color: '#52c41a' }}>
+                          RD$ {totalAmount.toFixed(2)}
+                        </Text>
+                      </div>
+                    </Space>
+                  </Card>
                 </>
               )}
 
@@ -437,9 +501,10 @@ export const ConfirmAppointmentModal: React.FC<
               {isConsultation && (
                 <Alert
                   message="Las consultas por seguro no requieren autorización previa"
+                  description="La autorización se realizará después de completar la consulta"
                   type="success"
                   showIcon
-                  style={{ marginTop: 8 }}
+                  style={{ marginTop: 16 }}
                 />
               )}
             </Card>
@@ -460,15 +525,11 @@ export const ConfirmAppointmentModal: React.FC<
               </Title>
 
               <Alert
-                message={
-                  isConsultation
-                    ? 'Autorización Posterior'
-                    : 'Número de Caso Requerido'
-                }
+                message={isConsultation ? 'Autorización Posterior' : 'Número de Caso Requerido'}
                 description={
                   isConsultation
                     ? 'Para consultas de riesgo laboral, el paciente debe ir a IDOPPRIL después de la consulta para autorización'
-                    : 'Para terapias de riesgo laboral, registre el número de caso'
+                    : 'Para terapias de riesgo laboral, registre el número de caso proporcionado por IDOPPRIL'
                 }
                 type="warning"
                 showIcon
@@ -477,24 +538,28 @@ export const ConfirmAppointmentModal: React.FC<
 
               <Row gutter={16}>
                 <Col span={24}>
-                  <CustomFormItem
-                    label="Número de Caso"
-                    name="case_number"
-                    required
-                  >
+                  <CustomFormItem label="Número de Caso" name="case_number" required>
                     <CustomInput placeholder="Ej: CASO-2025-001" />
                   </CustomFormItem>
                 </Col>
+                {paymentType === 'workplace_risk' && isTherapy && (
+                  <Col span={24}>
+                    <CustomFormItem
+                      label="Número de Autorización"
+                      name="authorization_number"
+                      required
+                    >
+                      <CustomInput placeholder="Ej: AUT-2025-001" />
+                    </CustomFormItem>
+                  </Col>
+                )}
               </Row>
             </Card>
           )}
 
           {/* Notas */}
           <CustomFormItem label="Notas Adicionales" name="notes">
-            <CustomInput.TextArea
-              rows={3}
-              placeholder="Observaciones sobre la confirmación..."
-            />
+            <CustomInput.TextArea rows={3} placeholder="Observaciones sobre la confirmación..." />
           </CustomFormItem>
 
           {/* Botones */}
@@ -505,7 +570,7 @@ export const ConfirmAppointmentModal: React.FC<
               htmlType="submit"
               loading={loading}
               icon={<CheckCircleOutlined />}
-              disabled={!hasPatient}
+              disabled={!hasPatient || (requiresAmounts && insuranceAmount <= 0)}
             >
               Confirmar Llegada
             </CustomButton>

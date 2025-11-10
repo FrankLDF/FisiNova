@@ -185,6 +185,7 @@ export const AppointmentForm = () => {
   // Handlers
   const handlePatientSelect = (patient: Patient | null) => {
     setSelectedPatient(patient)
+    console.log('Paciente seleccionado:', patient)
     if (patient) {
       form.setFieldsValue({
         guest_firstname: patient.firstname,

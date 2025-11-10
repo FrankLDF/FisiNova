@@ -83,6 +83,9 @@ export interface ConfirmAppointmentRequest {
 
   // General
   notes?: string
+  patient_amount?: number
+  insurance_amount?: number
+  total_amount?: number
 }
 
 export interface CreateAuthorizationRequest {

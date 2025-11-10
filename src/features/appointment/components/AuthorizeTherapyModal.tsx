@@ -109,19 +109,19 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   const [sessions, setSessions] = useState<TherapySession[]>([])
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
-  
+
   // Terapistas
   const [therapists, setTherapists] = useState<Employee[]>([])
   const [loadingTherapists, setLoadingTherapists] = useState(false)
   const [selectedTherapist, setSelectedTherapist] = useState<number | undefined>(undefined)
-  
+
   // Programación múltiple
   const [bulkScheduleModalOpen, setBulkScheduleModalOpen] = useState(false)
   const [selectedDays, setSelectedDays] = useState<number[]>([])
   const [bulkStartTime, setBulkStartTime] = useState<Dayjs | null>(null)
   const [bulkEndTime, setBulkEndTime] = useState<Dayjs | null>(null)
   const [bulkStartDate, setBulkStartDate] = useState<Dayjs>(dayjs())
-  
+
   // Montos
   const [insuranceAmount, setInsuranceAmount] = useState<number>(0)
   const [patientAmount, setPatientAmount] = useState<number>(0)
@@ -143,7 +143,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   useEffect(() => {
     if (appointment && open && !isInitialized) {
       console.log('🎯 Inicializando formulario con datos de la cita...')
-      
+
       if (appointment.patient) {
         setSelectedPatient(appointment.patient as Patient)
       }
@@ -159,7 +159,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
 
       form.setFieldsValue(initialValues)
       setIsInitialized(true)
-      
+
       console.log('📝 Valores iniciales del formulario:', initialValues)
       console.log('📅 Fecha de hoy:', today)
     }
@@ -182,8 +182,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   const loadTherapists = async () => {
     try {
       setLoadingTherapists(true)
-      const response = await appointmentService.getEmployees({ 
-        position_id: Positions.THERAPIST 
+      const response = await appointmentService.getEmployees({
+        position_id: Positions.THERAPIST,
       })
       const therapistData = response?.data?.data || response?.data || []
       setTherapists(Array.isArray(therapistData) ? therapistData : [])
@@ -210,13 +210,16 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
     onClose()
   }
 
-  const nextStep = () => {    
-    form.validateFields().then(() => {
-      setCurrentStep(currentStep + 1)
-      console.log('NOOOOOO: ', form.getFieldValue("authorization_number"))
-    }).catch((error) => {
-      console.log('❌ Error de validación:', error)
-    })
+  const nextStep = () => {
+    form
+      .validateFields()
+      .then(() => {
+        setCurrentStep(currentStep + 1)
+        console.log('NOOOOOO: ', form.getFieldValue('authorization_number'))
+      })
+      .catch((error) => {
+        console.log('❌ Error de validación:', error)
+      })
   }
 
   const prevStep = () => {
@@ -238,7 +241,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
 
     setSessions([...sessions, newSession])
     setIsCalendarOpen(false)
-    
+
     showNotification({
       type: 'success',
       message: 'Sesión agregada',
@@ -251,11 +254,12 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
 
   const handleTherapistChange = (therapistId: number) => {
     console.log('👨‍⚕️ Cambio de terapista:', selectedTherapist, '->', therapistId)
-    
+
     if (sessions.length > 0) {
       Modal.confirm({
         title: '¿Cambiar terapista?',
-        content: 'Al cambiar el terapista se eliminarán las sesiones programadas. ¿Desea continuar?',
+        content:
+          'Al cambiar el terapista se eliminarán las sesiones programadas. ¿Desea continuar?',
         onOk: () => {
           setSelectedTherapist(therapistId)
           setSessions([])
@@ -298,7 +302,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
 
     while (sessionsCreated < remainingSessions && currentDate.diff(bulkStartDate, 'days') < 60) {
       const dayOfWeek = currentDate.day()
-      
+
       if (selectedDays.includes(dayOfWeek)) {
         const newSession: TherapySession = {
           id: generateSessionId(),
@@ -316,7 +320,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
 
     setSessions([...sessions, ...newSessions])
     setBulkScheduleModalOpen(false)
-    
+
     showNotification({
       type: 'success',
       message: `Se agregaron ${newSessions.length} sesiones`,
@@ -324,91 +328,95 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   }
 
   const handleSubmit = () => {
-    
-    form.validateFields([
-      'authorization_number',
-      'insurance_id', 
-      'sessions_authorized',
-      'authorization_date',
-      'insurance_amount',
-      'patient_amount',
-    ]).then((values) => {
-      if (!selectedPatient) {
-        Modal.error({
-          title: 'Error',
-          content: 'Debe seleccionar un paciente',
-        })
-        return
-      }
+    form
+      .validateFields([
+        'authorization_number',
+        'insurance_id',
+        'sessions_authorized',
+        'authorization_date',
+        'insurance_amount',
+        'patient_amount',
+      ])
+      .then((values) => {
+        if (!selectedPatient) {
+          Modal.error({
+            title: 'Error',
+            content: 'Debe seleccionar un paciente',
+          })
+          return
+        }
 
-      if (!selectedTherapist) {
-        Modal.error({
-          title: 'Error',
-          content: 'Debe seleccionar un terapista',
-        })
-        return
-      }
+        if (!selectedTherapist) {
+          Modal.error({
+            title: 'Error',
+            content: 'Debe seleccionar un terapista',
+          })
+          return
+        }
 
-      if (sessions.length === 0) {
-        Modal.error({
-          title: 'Error',
-          content: 'Debe programar al menos una sesión de terapia',
-        })
-        return
-      }
+        if (sessions.length === 0) {
+          Modal.error({
+            title: 'Error',
+            content: 'Debe programar al menos una sesión de terapia',
+          })
+          return
+        }
 
-      const sessionsAuthorized = values.sessions_authorized
-      if (sessions.length !== sessionsAuthorized) {
-        Modal.error({
-          title: 'Error',
-          content: `Debe programar exactamente ${sessionsAuthorized} sesiones. Actualmente tiene ${sessions.length} sesiones.`,
-        })
-        return
-      }
+        const sessionsAuthorized = values.sessions_authorized
+        if (sessions.length !== sessionsAuthorized) {
+          Modal.error({
+            title: 'Error',
+            content: `Debe programar exactamente ${sessionsAuthorized} sesiones. Actualmente tiene ${sessions.length} sesiones.`,
+          })
+          return
+        }
 
-      if (!values.insurance_amount || values.insurance_amount <= 0) {
-        Modal.error({
-          title: 'Error',
-          content: 'Debe ingresar el monto cubierto por el seguro',
-        })
-        return
-      }
+        if (!values.insurance_amount || values.insurance_amount <= 0) {
+          Modal.error({
+            title: 'Error',
+            content: 'Debe ingresar el monto cubierto por el seguro',
+          })
+          return
+        }
 
-      if (values.patient_amount === undefined || values.patient_amount === null || values.patient_amount < 0) {
-        Modal.error({
-          title: 'Error',
-          content: 'Debe ingresar el copago del paciente (puede ser 0)',
-        })
-        return
-      }
+        if (
+          values.patient_amount === undefined ||
+          values.patient_amount === null ||
+          values.patient_amount < 0
+        ) {
+          Modal.error({
+            title: 'Error',
+            content: 'Debe ingresar el copago del paciente (puede ser 0)',
+          })
+          return
+        }
 
-      const data = {
-        patient_id: selectedPatient.id,
-        authorization_number: values.authorization_number,
-        authorization_date: values.authorization_date || dayjs().format('YYYY-MM-DD'),
-        insurance_id: values.insurance_id,
-        insurance_amount: Number(values.insurance_amount),
-        patient_amount: Number(values.patient_amount),
-        total_amount: Number(values.insurance_amount) + Number(values.patient_amount),
-        sessions_authorized: sessionsAuthorized,
-        therapist_id: selectedTherapist,
-        notes: values.notes || null,
-        sessions: sessions.map((session) => ({
-          date: session.date,
-          startTime: session.startTime,
-          endTime: session.endTime,
-        })),
-      }
+        const data = {
+          patient_id: selectedPatient.id,
+          authorization_number: values.authorization_number,
+          authorization_date: values.authorization_date || dayjs().format('YYYY-MM-DD'),
+          insurance_id: values.insurance_id,
+          insurance_amount: Number(values.insurance_amount),
+          patient_amount: Number(values.patient_amount),
+          total_amount: Number(values.insurance_amount) + Number(values.patient_amount),
+          sessions_authorized: sessionsAuthorized,
+          therapist_id: selectedTherapist,
+          notes: values.notes || null,
+          sessions: sessions.map((session) => ({
+            date: session.date,
+            startTime: session.startTime,
+            endTime: session.endTime,
+          })),
+        }
 
-      console.log('📤 Datos a enviar:', data)
-      onConfirm(data)
-    }).catch((error) => {
-      console.error('❌ Error de validación:', error)
-      Modal.error({
-        title: 'Error de Validación',
-        content: 'Por favor complete todos los campos requeridos correctamente',
+        onConfirm(data)
       })
-    })
+      .catch((error) => {
+        Modal.error({
+          title: 'Error de Validación',
+          content: 'Por favor complete todos los campos requeridos correctamente',
+        })
+      })
   }
 
   const sessionColumns: ColumnsType<TherapySession> = [
@@ -448,7 +456,11 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
           confirmed: 'Confirmado',
           conflict: 'Conflicto',
         }
-        return <Tag color={colors[status as keyof typeof colors]}>{labels[status as keyof typeof labels]}</Tag>
+        return (
+          <Tag color={colors[status as keyof typeof colors]}>
+            {labels[status as keyof typeof labels]}
+          </Tag>
+        )
       },
     },
     {
@@ -471,14 +483,14 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
     if (!medicalRecord) return null
 
     return (
-      <Card 
-        size="small" 
+      <Card
+        size="small"
         title={
           <Space>
             <MedicineBoxOutlined />
             <span>Resumen del Expediente Médico</span>
           </Space>
-        } 
+        }
         style={{ marginBottom: 16 }}
       >
         <Collapse ghost>
@@ -488,13 +500,13 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                 <Descriptions.Item label="Motivo de Consulta" span={2}>
                   {medicalRecord.chief_complaint || 'No especificado'}
                 </Descriptions.Item>
-                
+
                 {medicalRecord.therapy_reason && (
                   <Descriptions.Item label="Razón de Terapia" span={2}>
                     <Tag color="blue">{medicalRecord.therapy_reason}</Tag>
                   </Descriptions.Item>
                 )}
-                
+
                 {medicalRecord.therapy_sessions_needed && (
                   <Descriptions.Item label="Sesiones Recomendadas" span={2}>
                     <Tag color="green">{medicalRecord.therapy_sessions_needed} sesiones</Tag>
@@ -503,9 +515,13 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
               </Descriptions>
 
               {medicalRecord.diagnostics && medicalRecord.diagnostics.length > 0 && (
-                <Card 
-                  size="small" 
-                  title={<><MedicineBoxOutlined style={{ color: '#1890ff' }} /> Diagnósticos del Estándar</>}
+                <Card
+                  size="small"
+                  title={
+                    <>
+                      <MedicineBoxOutlined style={{ color: '#1890ff' }} /> Diagnósticos del Estándar
+                    </>
+                  }
                   headStyle={{ background: '#f0f5ff' }}
                 >
                   <Space wrap size="small">
@@ -519,8 +535,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
               )}
 
               {medicalRecord.procedures && medicalRecord.procedures.length > 0 && (
-                <Card 
-                  size="small" 
+                <Card
+                  size="small"
                   title="Procedimientos del Estándar Realizados"
                   headStyle={{ background: '#f6ffed' }}
                 >
@@ -544,8 +560,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
     if (!appointment) return null
 
     return (
-      <Card 
-        size="small" 
+      <Card
+        size="small"
         title={
           <Space>
             <CalendarOutlined />
@@ -562,9 +578,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
             {appointment.start_time} - {appointment.end_time}
           </Descriptions.Item>
           <Descriptions.Item label="Tipo de Cita">
-            <Tag color="purple">
-              {appointment.type === 'consultation' ? 'CONSULTA' : 'TERAPIA'}
-            </Tag>
+            <Tag color="purple">{appointment.type === 'consultation' ? 'CONSULTA' : 'TERAPIA'}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Estado">
             <Tag color="green">{appointment.status}</Tag>
@@ -580,8 +594,9 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   }
 
   const selectedTherapistData = therapists.find((t) => t.id === selectedTherapist)
-  const appointmentInsurance = appointment?.insurance || 
-    (appointment?.insurance_id ? insurances.find(i => i.id === appointment.insurance_id) : null)
+  const appointmentInsurance =
+    appointment?.insurance ||
+    (appointment?.insurance_id ? insurances.find((i) => i.id === appointment.insurance_id) : null)
 
   const daysOfWeek = [
     { value: 1, label: 'Lunes' },
@@ -606,15 +621,11 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
         width={1200}
         footer={null}
         destroyOnClose
-        style={{ top: 20 }}
       >
         <Steps current={currentStep} items={steps} style={{ marginBottom: 24 }} />
 
         <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: 8 }}>
-          <Form
-            form={form}
-            layout="vertical"
-          >
+          <Form form={form} layout="vertical">
             {/* PASO 0: INFORMACIÓN DEL PACIENTE */}
             {currentStep === 0 && (
               <>
@@ -649,12 +660,12 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                           {selectedPatient.sex === 'M' ? 'Masculino' : 'Femenino'}
                         </Descriptions.Item>
                         <Descriptions.Item label="Edad">
-                          {selectedPatient.birthdate 
+                          {selectedPatient.birthdate
                             ? dayjs().diff(dayjs(selectedPatient.birthdate), 'year') + ' años'
                             : 'N/A'}
                         </Descriptions.Item>
                       </Descriptions>
-                      
+
                       {appointmentInsurance && (
                         <Card size="small" style={{ marginTop: 16, background: '#f0f5ff' }}>
                           <Space direction="vertical" style={{ width: '100%' }}>
@@ -673,14 +684,14 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                           </Space>
                         </Card>
                       )}
-                      
-                      <Button
+
+                      {/* <Button
                         type="link"
                         onClick={() => setShowPatientModal(true)}
                         style={{ marginTop: 8 }}
                       >
                         Cambiar paciente
-                      </Button>
+                      </Button> */}
                     </>
                   ) : (
                     <Button type="dashed" block onClick={() => setShowPatientModal(true)}>
@@ -716,8 +727,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                     </Col>
                     <Col span={12}>
                       <CustomFormItem label="Compañía de Seguro" name="insurance_id" required>
-                        <CustomSelect 
-                          placeholder="Seleccionar seguro" 
+                        <CustomSelect
+                          placeholder="Seleccionar seguro"
                           loading={false}
                           disabled={!!appointment?.insurance_id}
                         >
@@ -730,7 +741,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                       </CustomFormItem>
                       {appointment?.insurance_id && (
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                          <InfoCircleOutlined /> El seguro proviene de la cita y no puede ser modificado
+                          <InfoCircleOutlined /> El seguro proviene de la cita y no puede ser
+                          modificado
                         </Text>
                       )}
                     </Col>
@@ -767,7 +779,11 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                   <Card
                     size="small"
                     style={{ background: '#f6ffed', marginBottom: 16 }}
-                    title={<><DollarOutlined /> Montos</>}
+                    title={
+                      <>
+                        <DollarOutlined /> Montos
+                      </>
+                    }
                   >
                     <Alert
                       message="Importante"
@@ -776,7 +792,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                       showIcon
                       style={{ marginBottom: 16 }}
                     />
-                    
+
                     <Row gutter={16}>
                       <Col span={12}>
                         <CustomFormItem
@@ -804,7 +820,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                         <CustomFormItem
                           label="Copago del Paciente"
                           name="patient_amount"
-                          required
                           tooltip="Monto que pagará el paciente (puede ser 0)"
                         >
                           <InputNumber
@@ -815,7 +830,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                             prefix="RD$"
                             placeholder="0.00"
                             onChange={(value) => {
-                              console.log('💵 Copago cambiado:', value)
                               setPatientAmount(value || 0)
                               form.setFieldValue('patient_amount', value || 0)
                             }}
@@ -990,7 +1004,10 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                   rowKey="id"
                   pagination={false}
                   size="small"
-                  locale={{ emptyText: 'No hay sesiones programadas. Use los botones arriba para agregar sesiones.' }}
+                  locale={{
+                    emptyText:
+                      'No hay sesiones programadas. Use los botones arriba para agregar sesiones.',
+                  }}
                   scroll={{ y: 300 }}
                 />
               </>

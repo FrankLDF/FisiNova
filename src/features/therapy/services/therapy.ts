@@ -6,8 +6,6 @@ interface StartSessionData {
 }
 
 interface CompleteSessionData {
-  selected_procedure_detail_ids: number[]
-  procedure_notes?: string
   final_patient_state: string
   final_observations?: string
   next_session_recommendation?: string
@@ -23,11 +21,6 @@ class TherapyService {
 
   async getSession(appointmentId: number) {
     const res = await serverCore.get(`/therapies/${appointmentId}`)
-    return res.data
-  }
-
-  async getConsultationInfo(appointmentId: number) {
-    const res = await serverCore.get(`/therapies/${appointmentId}/consultation-info`)
     return res.data
   }
 

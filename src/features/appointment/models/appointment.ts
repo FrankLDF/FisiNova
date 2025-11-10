@@ -44,6 +44,8 @@ export interface Appointment {
   case_number?: string // Para riesgo laboral
   confirmed_at?: string
   confirmed_by?: number
+  consultation_appointment_id?: number
+  consultation_appointment?: Appointment
 
   confirmedBy?: {
     id: number

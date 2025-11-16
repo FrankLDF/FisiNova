@@ -83,7 +83,7 @@ export const StaffForm = () => {
         cellphone: staff.cellphone,
         dni: staff.dni,
         address: staff.address,
-        position_id: staff.position_id,
+        position_id: Number(staff.position_id),
         active: staff.active,
       })
     }

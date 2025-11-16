@@ -91,13 +91,13 @@ export const ConsultStaffSchedules = () => {
       render: (_, record) => (
         <Space direction="vertical" size={0}>
           <span style={{ fontWeight: 500 }}>
-            {record.staff
-              ? `${record.staff.firstname} ${record.staff.lastname}`
+            {record.employee
+              ? `${record.employee.firstname} ${record.employee.lastname}`
               : 'Sin asignar'}
           </span>
-          {record.staff?.position && (
+          {record.employee?.position && (
             <Tag color="blue" style={{ fontSize: 11 }}>
-              {record.staff.position.name}
+              {record.employee.position.name}
             </Tag>
           )}
         </Space>

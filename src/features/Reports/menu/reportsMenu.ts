@@ -1,10 +1,24 @@
 import React from 'react'
 import { Rol, type AppMenuItem } from '../../../utils/constants'
-import { FundOutlined } from '@ant-design/icons'
+import { DollarCircleOutlined, FundOutlined, UserOutlined } from '@ant-design/icons'
 
 export const reportsMenu: AppMenuItem = {
-  key: '/reports-dashboard',
+  key: 'reports',
   label: 'Reportes',
   requiredRols: [Rol.ADMIN, Rol.SECRETARY],
   icon: React.createElement(FundOutlined),
+  children: [
+    {
+      key: '/reports-insourance-dashboard',
+      label: 'Aseguradoras',
+      requiredRols: [Rol.ADMIN, Rol.SECRETARY],
+      icon: React.createElement(DollarCircleOutlined),
+    },
+    {
+      key: '/reports-patient-dashboard',
+      label: 'Pacientes',
+      requiredRols: [Rol.ADMIN, Rol.SECRETARY],
+      icon: React.createElement(UserOutlined),
+    },
+  ],
 }

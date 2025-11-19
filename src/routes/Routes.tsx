@@ -396,7 +396,7 @@ const AppRoutes = () => {
       />
 
       <Route
-        path="/reports-dashboard"
+        path="/reports-insourance-dashboard"
         element={
           <PrivateRoutes>
             <RoleProtectedRoute allowedRoles={[Rol.ADMIN, Rol.SECRETARY]}>

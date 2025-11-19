@@ -1,7 +1,7 @@
 import { Card, Table, Row, Col, Space, Tag, Tooltip, Input } from 'antd'
 import {
   EditOutlined,
-  DeleteOutlined,
+  PrinterOutlined,
   PlusOutlined,
   EyeOutlined,
   SearchOutlined,
@@ -14,19 +14,22 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CustomButton } from '../../../components/Button/CustomButton'
-import { CustomConfirm } from '../../../components/pop-confirm/CustomConfirm'
+// import { CustomConfirm } from '../../../components/pop-confirm/CustomConfirm'
 import { useCustomMutation } from '../../../hooks/UseCustomMutation'
 import { showNotification } from '../../../utils/showNotification'
 import patientService from '../services/patient'
 import type { Patient } from '../models/patient'
 import type { ColumnsType } from 'antd/es/table'
 import { showHandleError } from '../../../utils/handleError'
+import { PrintMedicalHistoryModal } from '../components/PrintMedicalHistoryModal'
 
 const { Search } = Input
 
 export const ConsultPatients = () => {
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
+  const [printModalOpen, setPrintModalOpen] = useState(false)
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
 
   const {
     data: patientsData,
@@ -36,7 +39,7 @@ export const ConsultPatients = () => {
     queryKey: ['patients', searchValue],
     queryFn: () => patientService.getPatients(searchValue),
   })
-  console.log({ patientsData })
+
   const { mutate: deletePatient } = useCustomMutation({
     execute: patientService.deletePatient,
     onSuccess: () => {
@@ -65,6 +68,11 @@ export const ConsultPatients = () => {
 
   const handleDeletePatient = (patientId: number) => {
     deletePatient(patientId)
+  }
+
+  const handlePrintHistory = (record: any) => {
+    setSelectedPatient(record)
+    setPrintModalOpen(true)
   }
 
   const calculateAge = (birthdate?: string): number | null => {
@@ -221,6 +229,15 @@ export const ConsultPatients = () => {
             />
           </Tooltip>
 
+          <Tooltip title="Imprimir Historial Médico">
+            <CustomButton
+              type="text"
+              icon={<PrinterOutlined />}
+              onClick={() => handlePrintHistory(record)}
+              style={{ color: '#52c41a' }}
+            />
+          </Tooltip>
+
           {/* <CustomConfirm
             title="¿Estás seguro de eliminar este paciente?"
             description="Esta acción no se puede deshacer"
@@ -308,6 +325,17 @@ export const ConsultPatients = () => {
           </Card>
         </Col>
       </Row>
+      <PrintMedicalHistoryModal
+        open={printModalOpen}
+        onClose={() => {
+          setPrintModalOpen(false)
+          setSelectedPatient(null)
+        }}
+        patientId={selectedPatient?.id!}
+        patientName={`${selectedPatient?.firstname || ''} ${
+          selectedPatient?.lastname || ''
+        }`}
+      />
     </div>
   )
 }

@@ -71,7 +71,7 @@ const AppRoutes = () => {
   }
 
   if (isAdmin(user?.rols || [])) {
-    dashboardPath = '/reports-dashboard'
+    dashboardPath = '/reports-insourance-dashboard'
   }
 
   return (

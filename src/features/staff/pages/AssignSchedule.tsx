@@ -40,7 +40,9 @@ export const AssignSchedule = () => {
   const [current, setCurrent] = useState(0)
 
   // States
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  )
   const [selectedTemplate, setSelectedTemplate] =
     useState<ScheduleTemplate | null>(null)
   const [assignmentType, setAssignmentType] =
@@ -314,7 +316,8 @@ export const AssignSchedule = () => {
                     >
                       <Space direction="vertical" size={4}>
                         <Text strong>
-                          {selectedEmployee.firstname} {selectedEmployee.lastname}
+                          {selectedEmployee.firstname}{' '}
+                          {selectedEmployee.lastname}
                         </Text>
                         <Text type="secondary">
                           Posición: {selectedEmployee.position?.name}
@@ -402,7 +405,7 @@ export const AssignSchedule = () => {
                     <CustomSelect />
                   </CustomFormItem>
 
-                  <Card
+                  {/* <Card
                     type="inner"
                     title="Tipo de Asignación"
                     style={{ marginBottom: 16 }}
@@ -464,7 +467,7 @@ export const AssignSchedule = () => {
                         </Card>
                       </Space>
                     </Radio.Group>
-                  </Card>
+                  </Card> */}
 
                   {/* ========== ASIGNACIÓN RECURRENTE ========== */}
                   {/* {assignmentType === 'recurring' && (
@@ -603,8 +606,9 @@ export const AssignSchedule = () => {
                     <Row gutter={16}>
                       <Col xs={24} md={12}>
                         <CustomFormItem
-                          label="Cubículo (Opcional)"
+                          label="Cubículo (Espacio Físico)"
                           name="cubicle_id"
+                          required
                         >
                           <CustomSelect
                             placeholder="Seleccionar cubículo..."

@@ -193,7 +193,10 @@ export const InsuranceForm = () => {
                     <CustomButton
                       type={isEditing ? 'default' : 'primary'}
                       icon={isEditing ? <EyeOutlined /> : <EditOutlined />}
-                      onClick={toggleEditMode}
+                      onClick={() => {
+                        toggleEditMode()
+                        setMode('edit')
+                      }}
                     >
                       {isSmallDevice
                         ? null
@@ -302,7 +305,7 @@ export const InsuranceForm = () => {
                   </Space>
                 </CustomFormItem> */}
 
-                {mode !== 'create' && (
+                {/* {mode !== 'create' && (
                   <Alert
                     message="Nota"
                     description="Si desactivas este seguro, no podrá ser seleccionado en nuevas citas o pacientes."
@@ -310,7 +313,7 @@ export const InsuranceForm = () => {
                     showIcon
                     style={{ marginTop: 16 }}
                   />
-                )}
+                )} */}
               </Card>
 
               {(mode === 'create' || isEditing) && (

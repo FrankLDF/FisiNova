@@ -329,7 +329,10 @@ export const UserForm = () => {
                       disabled={userLoged?.id === Number(id)}
                       type={isEditing ? 'default' : 'primary'}
                       icon={isEditing ? <EyeOutlined /> : <EditOutlined />}
-                      onClick={toggleEditMode}
+                      onClick={() => {
+                        toggleEditMode()
+                        setMode('edit')
+                      }}
                     >
                       {isSmallDevice
                         ? null

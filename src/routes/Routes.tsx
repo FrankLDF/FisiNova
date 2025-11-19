@@ -37,7 +37,12 @@ import { UserForm } from '../features/users/pages/UserForm'
 // ========== OTROS ==========
 import { RoleProtectedRoute } from './RoleProtectedRoutes'
 import { Rol } from '../utils/constants'
-import { isMedic, isSecretary, isTherapist } from '../utils/authFunctions'
+import {
+  isAdmin,
+  isMedic,
+  isSecretary,
+  isTherapist,
+} from '../utils/authFunctions'
 import { useAuth } from '../store/auth/AuthContext'
 import { TherapistDashboard } from '../features/therapy/pages/TherapistDashboard'
 import { InsuranceForm } from '../features/insurances/pages/InsuranceForm'
@@ -63,6 +68,10 @@ const AppRoutes = () => {
 
   if (isSecretary(user?.rols || [])) {
     dashboardPath = PATH_CONSULT_APPOINTMENTS
+  }
+
+  if (isAdmin(user?.rols || [])) {
+    dashboardPath = '/reports-dashboard'
   }
 
   return (

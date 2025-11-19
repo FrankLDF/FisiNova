@@ -221,7 +221,10 @@ export const StaffForm = () => {
                     <CustomButton
                       type={isEditing ? 'default' : 'primary'}
                       icon={isEditing ? <EyeOutlined /> : <EditOutlined />}
-                      onClick={toggleEditMode}
+                      onClick={() => {
+                        toggleEditMode()
+                        setMode('edit')
+                      }}
                     >
                       {isSmallDevice
                         ? null

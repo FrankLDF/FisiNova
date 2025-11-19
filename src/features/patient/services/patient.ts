@@ -51,16 +51,16 @@ class patientService {
     const params = new URLSearchParams()
 
     if (options?.include_vital_signs !== undefined) {
-      params.append('include_vital_signs', String(options.include_vital_signs))
+      params.append('include_vital_signs', options.include_vital_signs ? '1' : '0')
     }
     if (options?.include_medical_history !== undefined) {
-      params.append('include_medical_history', String(options.include_medical_history))
+      params.append('include_medical_history', options.include_medical_history ? '1' : '0')
     }
     if (options?.include_prescriptions !== undefined) {
-      params.append('include_prescriptions', String(options.include_prescriptions))
+      params.append('include_prescriptions', options.include_prescriptions ? '1' : '0')
     }
     if (options?.include_therapy_sessions !== undefined) {
-      params.append('include_therapy_sessions', String(options.include_therapy_sessions))
+      params.append('include_therapy_sessions', options.include_therapy_sessions ? '1' : '0')
     }
 
     const res = await serverCore.get(

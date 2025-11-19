@@ -70,8 +70,8 @@ export const ConsultPatients = () => {
     deletePatient(patientId)
   }
 
-  const handlePrintHistory = (patient: Patient) => {
-    setSelectedPatient(patient)
+  const handlePrintHistory = (record: any) => {
+    setSelectedPatient(record)
     setPrintModalOpen(true)
   }
 
@@ -81,7 +81,10 @@ export const ConsultPatients = () => {
     const birth = new Date(birthdate)
     let age = today.getFullYear() - birth?.getFullYear()
     const monthDiff = today.getMonth() - birth?.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth?.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth?.getDate())
+    ) {
       age--
     }
     return age
@@ -102,7 +105,9 @@ export const ConsultPatients = () => {
               </span>
             </Space>
             {record?.dni && (
-              <span style={{ fontSize: 12, color: '#666' }}>Cédula: {record?.dni}</span>
+              <span style={{ fontSize: 12, color: '#666' }}>
+                Cédula: {record?.dni}
+              </span>
             )}
             {age !== null && (
               <Tag color="blue" style={{ fontSize: 11, marginTop: 4 }}>
@@ -125,7 +130,9 @@ export const ConsultPatients = () => {
               <span style={{ fontSize: 12 }}>{record?.cellphone}</span>
             </Space>
           )}
-          {record?.email && <span style={{ fontSize: 12, color: '#666' }}>{record?.email}</span>}
+          {record?.email && (
+            <span style={{ fontSize: 12, color: '#666' }}>{record?.email}</span>
+          )}
           {record?.city && (
             <Space size={4}>
               <EnvironmentOutlined style={{ fontSize: 12, color: '#52c41a' }} />
@@ -189,7 +196,9 @@ export const ConsultPatients = () => {
       dataIndex: 'active',
       key: 'active',
       render: (active: boolean) => (
-        <Tag color={active ? 'green' : 'red'}>{active ? 'Activo' : 'Inactivo'}</Tag>
+        <Tag color={active ? 'green' : 'red'}>
+          {active ? 'Activo' : 'Inactivo'}
+        </Tag>
       ),
       filters: [
         { text: 'Activo', value: true },
@@ -254,7 +263,9 @@ export const ConsultPatients = () => {
     setSearchValue(value)
   }
 
-  const tableData = Array.isArray(patientsData?.data?.data) ? patientsData.data?.data : []
+  const tableData = Array.isArray(patientsData?.data?.data)
+    ? patientsData.data?.data
+    : []
   console.log({ tableData })
 
   return (
@@ -321,7 +332,9 @@ export const ConsultPatients = () => {
           setSelectedPatient(null)
         }}
         patientId={selectedPatient?.id!}
-        patientName={`${selectedPatient?.firstname || ''} ${selectedPatient?.lastname || ''}`}
+        patientName={`${selectedPatient?.firstname || ''} ${
+          selectedPatient?.lastname || ''
+        }`}
       />
     </div>
   )

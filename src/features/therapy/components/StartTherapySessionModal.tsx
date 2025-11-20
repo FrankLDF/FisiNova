@@ -107,7 +107,7 @@ export const StartTherapySessionModal = ({ open, onClose, onSuccess, therapy }: 
             {patient.age ? `${patient.age} años` : 'N/A'}
           </Descriptions.Item>
           <Descriptions.Item label="Sexo">
-            {patient.sex === 'M' ? 'Masculino' : patient.sex === 'F' ? 'Femenino' : 'N/A'}
+            {patient.sex === 'male' ? 'Masculino' : patient.sex === 'female' ? 'Femenino' : 'N/A'}
           </Descriptions.Item>
           <Descriptions.Item label="Teléfono">{patient.phone || 'N/A'}</Descriptions.Item>
         </Descriptions>

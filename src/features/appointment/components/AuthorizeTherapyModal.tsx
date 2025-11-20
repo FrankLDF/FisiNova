@@ -144,7 +144,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   // Inicializar formulario UNA SOLA VEZ
   useEffect(() => {
     if (appointment && open && !isInitialized) {
-      console.log('🎯 Inicializando formulario con datos de la cita...')
 
       if (appointment.patient) {
         setSelectedPatient(appointment.patient as Patient)
@@ -161,9 +160,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
 
       form.setFieldsValue(initialValues)
       setIsInitialized(true)
-
-      console.log('📝 Valores iniciales del formulario:', initialValues)
-      console.log('📅 Fecha de hoy:', today)
     }
   }, [appointment, open, isInitialized, form, medicalRecord])
 
@@ -217,10 +213,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
       .validateFields()
       .then(() => {
         setCurrentStep(currentStep + 1)
-        console.log('NOOOOOO: ', form.getFieldValue('authorization_number'))
-      })
-      .catch((error) => {
-        console.log('❌ Error de validación:', error)
       })
   }
 
@@ -255,7 +247,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   }
 
   const handleTherapistChange = (therapistId: number) => {
-    console.log('👨‍⚕️ Cambio de terapista:', selectedTherapist, '->', therapistId)
 
     if (sessions.length > 0) {
       Modal.confirm({
@@ -265,16 +256,13 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
         onOk: () => {
           setSelectedTherapist(therapistId)
           setSessions([])
-          console.log('✅ Terapista cambiado y sesiones eliminadas')
         },
         onCancel: () => {
           form.setFieldValue('therapist_id', selectedTherapist)
-          console.log('❌ Cambio cancelado, terapista mantenido')
         },
       })
     } else {
       setSelectedTherapist(therapistId)
-      console.log('✅ Terapista seleccionado (sin sesiones previas)')
     }
   }
 
@@ -651,7 +639,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                           {selectedPatient.passport || 'N/A'}
                         </Descriptions.Item>
                         <Descriptions.Item label="Sexo">
-                          {selectedPatient.sex === 'M' ? 'Masculino' : 'Femenino'}
+                          {selectedPatient.sex === 'male' ? 'Masculino' : 'Femenino'}
                         </Descriptions.Item>
                         <Descriptions.Item label="Edad">
                           {selectedPatient.birthdate

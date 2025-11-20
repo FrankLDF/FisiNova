@@ -171,10 +171,10 @@ export const ConsultPatients = () => {
         const firstLetter = sex.trim().charAt(0).toLowerCase()
         let label = 'No especificado'
         let color = 'default'
-        if (firstLetter === 'f') {
+        if (firstLetter === 'female') {
           label = 'Femenino'
           color = 'pink'
-        } else if (firstLetter === 'm') {
+        } else if (firstLetter === 'male') {
           label = 'Masculino'
           color = 'blue'
         }
@@ -186,8 +186,8 @@ export const ConsultPatients = () => {
       ],
       onFilter: (value, record) => {
         const firstLetter = record?.sex?.trim().charAt(0).toLowerCase()
-        if (value === 'Masculino') return firstLetter === 'm'
-        if (value === 'Femenino') return firstLetter === 'f'
+        if (value === 'Masculino') return firstLetter === 'male'
+        if (value === 'Femenino') return firstLetter === 'female'
         return false
       },
     },

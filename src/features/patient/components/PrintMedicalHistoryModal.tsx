@@ -147,6 +147,9 @@ export const PrintMedicalHistoryModal = ({ open, onClose, patientId, patientName
                   <Descriptions.Item label="Total Terapias" span={1}>
                     <Tag color="green">{previewData.stats.total_therapies}</Tag>
                   </Descriptions.Item>
+                  <Descriptions.Item label="Total Diagnósticos" span={1}>
+                    <Tag color="orange">{previewData.stats.total_diagnoses}</Tag>
+                  </Descriptions.Item>
                   <Descriptions.Item label="Primera Consulta" span={1}>
                     {previewData.stats.first_consultation || 'N/A'}
                   </Descriptions.Item>

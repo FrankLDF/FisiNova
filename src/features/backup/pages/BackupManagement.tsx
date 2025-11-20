@@ -364,7 +364,7 @@ export const BackupManagement = () => {
           )}
 
         {/* Estadísticas */}
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card loading={loadingStats}>
             <Statistic
               title="Total de Backups"
@@ -375,7 +375,7 @@ export const BackupManagement = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card loading={loadingStats}>
             <Statistic
               title="Espacio Utilizado"
@@ -386,7 +386,7 @@ export const BackupManagement = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={6}>
+        {/* <Col xs={24} sm={12} lg={6}>
           <Card loading={loadingStats}>
             <Space direction="vertical" style={{ width: '100%' }}>
               <span style={{ color: '#666', fontSize: 14 }}>Último Backup</span>
@@ -397,8 +397,8 @@ export const BackupManagement = () => {
               </span>
             </Space>
           </Card>
-        </Col>
-
+        </Col> */}
+{/* 
         <Col xs={24} sm={12} lg={6}>
           <Card loading={loadingStats}>
             <Space direction="vertical" style={{ width: '100%' }} size={8}>
@@ -410,7 +410,7 @@ export const BackupManagement = () => {
               />
             </Space>
           </Card>
-        </Col>
+        </Col> */}
 
         {/* Tabla */}
         <Col span={24}>

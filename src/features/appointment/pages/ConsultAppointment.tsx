@@ -35,6 +35,8 @@ export const ConsultAppointments = () => {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<AppointmentFilters>({
     paginate: 15,
+    start_date: dayjs().startOf('day').format('YYYY-MM-DD'),
+    end_date: dayjs().endOf('day').format('YYYY-MM-DD'),
   })
   const { user } = useAuth()
 
@@ -47,10 +49,9 @@ export const ConsultAppointments = () => {
     filters.employee_id = user.id
   }
 
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null)
-
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>([dayjs(), dayjs()])
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined)
-  const [selectedActive, setSelectedActive] = useState<string | undefined>(undefined)
+  // const [selectedActive, setSelectedActive] = useState<string | undefined>(undefined)
 
   const {
     data: appointmentsData,
@@ -332,7 +333,7 @@ export const ConsultAppointments = () => {
     setFilters({ paginate: 15 })
     setDateRange(null)
     setSelectedStatus(undefined)
-    setSelectedActive(undefined)
+    // setSelectedActive(undefined)
   }
 
   const handleDateRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
@@ -364,10 +365,10 @@ export const ConsultAppointments = () => {
     handleFilterChange('status', value)
   }
 
-  const handleActiveChange = (value: string) => {
-    setSelectedActive(value)
-    handleFilterChange('active', value)
-  }
+  // const handleActiveChange = (value: string) => {
+  //   setSelectedActive(value)
+  //   handleFilterChange('active', value)
+  // }
 
   const tableData = appointmentsData?.data?.data || appointmentsData?.data || []
   const pagination = {
@@ -394,6 +395,7 @@ export const ConsultAppointments = () => {
                   style={{ width: '100%' }}
                   value={dateRange}
                   onChange={handleDateRangeChange}
+                  placeholder={['Fecha inicial', 'Fecha final']}
                 />
               </Col>
 
@@ -414,7 +416,7 @@ export const ConsultAppointments = () => {
                 </Select>
               </Col>
 
-              <Col xs={24} sm={12} md={6} lg={4}>
+              {/* <Col xs={24} sm={12} md={6} lg={4}>
                 <label>Activo:</label>
                 <Select
                   style={{ width: '100%' }}
@@ -426,7 +428,7 @@ export const ConsultAppointments = () => {
                   <Option value="true">Activo</Option>
                   <Option value="false">Inactivo</Option>
                 </Select>
-              </Col>
+              </Col> */}
 
               <Col xs={24} sm={12} md={6} lg={6}>
                 <Space direction="vertical" style={{ width: '100%' }}>

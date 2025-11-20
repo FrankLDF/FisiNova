@@ -127,6 +127,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
   const [patientAmount, setPatientAmount] = useState<number>(0)
   const [totalAmount, setTotalAmount] = useState<number>(0)
 
+  const isPrivate = appointment?.payment_type === 'private'
+
   // Solo cargar terapistas cuando se abre
   useEffect(() => {
     if (open) {
@@ -367,14 +369,6 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
           Modal.error({
             title: 'Error',
             content: `Debe programar exactamente ${sessionsAuthorized} sesiones. Actualmente tiene ${sessions.length} sesiones.`,
-          })
-          return
-        }
-
-        if (!values.insurance_amount || values.insurance_amount <= 0) {
-          Modal.error({
-            title: 'Error',
-            content: 'Debe ingresar el monto cubierto por el seguro',
           })
           return
         }
@@ -666,7 +660,7 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                         </Descriptions.Item>
                       </Descriptions>
 
-                      {appointmentInsurance && (
+                      {appointmentInsurance && !isPrivate && (
                         <Card size="small" style={{ marginTop: 16, background: '#f0f5ff' }}>
                           <Space direction="vertical" style={{ width: '100%' }}>
                             <Space>
@@ -707,47 +701,55 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
               <>
                 <Alert
                   message="Información de la Autorización"
-                  description="Complete los datos de la autorización del seguro médico y los montos correspondientes"
+                  description={
+                    isPrivate
+                      ? 'Complete los datos de pago con los montos correspondientes'
+                      : 'Complete los datos de la autorización del seguro médico y los montos correspondientes'
+                  }
                   type="info"
                   showIcon
                   style={{ marginBottom: 16 }}
                 />
-
                 <Card size="small">
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <CustomFormItem
-                        label="Número de Autorización"
-                        name="authorization_number"
-                        required
-                        tooltip="Número de autorización emitido por el seguro"
-                      >
-                        <CustomInput placeholder="Ej: AUT-2025-001234" />
-                      </CustomFormItem>
-                    </Col>
-                    <Col span={12}>
-                      <CustomFormItem label="Compañía de Seguro" name="insurance_id" required>
-                        <CustomSelect
-                          placeholder="Seleccionar seguro"
-                          loading={false}
-                          disabled={!!appointment?.insurance_id}
+                  {appointmentInsurance && !isPrivate && (
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <CustomFormItem
+                          label="Número de Autorización"
+                          name="authorization_number"
+                          required={!isPrivate}
+                          tooltip="Número de autorización emitido por el seguro"
                         >
-                          {insurances.map((insurance) => (
-                            <Option key={insurance.id} value={insurance.id}>
-                              {insurance.name}
-                            </Option>
-                          ))}
-                        </CustomSelect>
-                      </CustomFormItem>
-                      {appointment?.insurance_id && (
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          <InfoCircleOutlined /> El seguro proviene de la cita y no puede ser
-                          modificado
-                        </Text>
-                      )}
-                    </Col>
-                  </Row>
-
+                          <CustomInput placeholder="Ej: AUT-2025-001234" />
+                        </CustomFormItem>
+                      </Col>
+                      <Col span={12}>
+                        <CustomFormItem
+                          label="Compañía de Seguro"
+                          name="insurance_id"
+                          required={!isPrivate}
+                        >
+                          <CustomSelect
+                            placeholder="Seleccionar seguro"
+                            loading={false}
+                            disabled={!!appointment?.insurance_id}
+                          >
+                            {insurances.map((insurance) => (
+                              <Option key={insurance.id} value={insurance.id}>
+                                {insurance.name}
+                              </Option>
+                            ))}
+                          </CustomSelect>
+                        </CustomFormItem>
+                        {appointment?.insurance_id && (
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            <InfoCircleOutlined /> El seguro proviene de la cita y no puede ser
+                            modificado
+                          </Text>
+                        )}
+                      </Col>
+                    </Row>
+                  )}
                   <Row gutter={16}>
                     <Col span={12}>
                       <CustomFormItem
@@ -787,7 +789,11 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                   >
                     <Alert
                       message="Importante"
-                      description="Ingrese el monto que cubrirá el seguro y el copago del paciente. El total se calculará automáticamente."
+                      description={
+                        isPrivate
+                          ? 'Ingrese el monto pagado por el paciente. Procedimientos privados no son cubiertos por seguro.'
+                          : 'Ingrese el monto que cubrirá el seguro y el copago del paciente. El total se calculará automáticamente.'
+                      }
                       type="info"
                       showIcon
                       style={{ marginBottom: 16 }}
@@ -798,7 +804,24 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                         <CustomFormItem
                           label="Monto cubierto por el Seguro"
                           name="insurance_amount"
-                          required
+                          rules={[
+                            { required: !isPrivate, message: 'El monto de seguro es requerido' },
+                            {
+                              validator: (_, value) => {
+                                // Si es pago privado, debe ser mayor a 0
+                                if (!isPrivate && (!value || value <= 0)) {
+                                  return Promise.reject(
+                                    'Para pago privado, el copago debe ser mayor a 0'
+                                  )
+                                }
+                                // Si no es privado, puede ser 0 o más
+                                if (value < 0) {
+                                  return Promise.reject('El monto no puede ser negativo')
+                                }
+                                return Promise.resolve()
+                              },
+                            },
+                          ]}
                           tooltip="Monto que pagará la compañía de seguro"
                         >
                           <InputNumber
@@ -808,8 +831,8 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                             precision={2}
                             prefix="RD$"
                             placeholder="0.00"
+                            disabled={isPrivate}
                             onChange={(value) => {
-                              console.log('💰 Monto seguro cambiado:', value)
                               setInsuranceAmount(value || 0)
                               form.setFieldValue('insurance_amount', value || 0)
                             }}
@@ -820,7 +843,23 @@ export const AuthorizeTherapyModal: React.FC<AuthorizeTherapyModalProps> = ({
                         <CustomFormItem
                           label="Copago del Paciente"
                           name="patient_amount"
-                          tooltip="Monto que pagará el paciente (puede ser 0)"
+                          tooltip="Monto que pagará el paciente"
+                          rules={[
+                            { required: isPrivate, message: 'El monto de copago es requerido' },
+                            {
+                              validator: (_, value) => {
+                                if (isPrivate && (!value || value <= 0)) {
+                                  return Promise.reject(
+                                    'Para pago privado, el copago debe ser mayor a 0'
+                                  )
+                                }
+                                if (value < 0) {
+                                  return Promise.reject('El monto no puede ser negativo')
+                                }
+                                return Promise.resolve()
+                              },
+                            },
+                          ]}
                         >
                           <InputNumber
                             style={{ width: '100%' }}

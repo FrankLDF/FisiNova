@@ -1,6 +1,3 @@
-// ============================================================
-// ARCHIVO: src/features/appointment/components/ConfirmAppointmentModal.tsx
-// ============================================================
 import React, { useState, useEffect } from 'react'
 import {
   Modal,
@@ -71,7 +68,8 @@ export const ConfirmAppointmentModal: React.FC<ConfirmAppointmentModalProps> = (
 
   // Determinar si requiere autorización previa y montos
   const requiresAuthorization = isTherapy && paymentType === 'insurance'
-  const requiresAmounts = isTherapy && paymentType === 'insurance'
+  const requiresAmounts = isTherapy && (paymentType === 'insurance' || paymentType === 'private')
+  const isPrivateTherapy = isTherapy && paymentType === 'private'
 
   useEffect(() => {
     if (appointment && open) {
@@ -180,9 +178,23 @@ export const ConfirmAppointmentModal: React.FC<ConfirmAppointmentModalProps> = (
       }
     }
 
+    // Para privado
+    if (values.payment_type === 'private' && isTherapy) {
+      // Solo enviar el monto del paciente
+      data.patient_amount = patientAmount
+      data.insurance_amount = 0
+      data.total_amount = patientAmount
+    }
+
     // Para riesgo laboral
     if (values.payment_type === 'workplace_risk') {
       data.case_number = values.case_number
+      if (isTherapy) {
+        data.authorization_number = values.authorization_number
+        data.insurance_amount = insuranceAmount
+        data.patient_amount = 0
+        data.total_amount = insuranceAmount
+      }
     }
 
     onConfirm(data)
@@ -510,6 +522,68 @@ export const ConfirmAppointmentModal: React.FC<ConfirmAppointmentModalProps> = (
             </Card>
           )}
 
+          {/* Campos de Pago Privado - SOLO PARA TERAPIA */}
+          {isPrivateTherapy && (
+            <Card
+              size="small"
+              style={{
+                backgroundColor: '#fff7e6',
+                borderColor: '#ffd591',
+                marginBottom: 16,
+              }}
+            >
+              <Title level={5} style={{ marginTop: 0 }}>
+                <DollarOutlined /> Pago Privado
+              </Title>
+
+              <Alert
+                message="Terapia Privada"
+                description="Las terapias privadas no requieren autorización de seguro. Solo debe registrar el monto que pagará el paciente."
+                type="info"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+
+              <Row gutter={16}>
+                <Col span={24}>
+                  <CustomFormItem
+                    label="Monto a Pagar por el Paciente"
+                    required
+                    tooltip="Monto total que pagará el paciente por la sesión de terapia"
+                  >
+                    <InputNumber
+                      style={{ width: '100%' }}
+                      min={0}
+                      step={10}
+                      precision={2}
+                      prefix="RD$"
+                      placeholder="0.00"
+                      value={patientAmount}
+                      onChange={(value) => setPatientAmount(value || 0)}
+                    />
+                  </CustomFormItem>
+                </Col>
+              </Row>
+
+              <Card
+                size="small"
+                style={{
+                  backgroundColor: '#fff7e6',
+                  borderColor: '#ffd591',
+                  marginTop: 16,
+                  textAlign: 'center',
+                }}
+              >
+                <Space direction="vertical" size="small">
+                  <Text type="secondary">TOTAL A PAGAR</Text>
+                  <Text strong style={{ fontSize: 24, color: '#52c41a' }}>
+                    RD$ {patientAmount.toFixed(2)}
+                  </Text>
+                </Space>
+              </Card>
+            </Card>
+          )}
+
           {/* Campos de Riesgo Laboral */}
           {paymentType === 'workplace_risk' && (
             <Card
@@ -554,6 +628,43 @@ export const ConfirmAppointmentModal: React.FC<ConfirmAppointmentModalProps> = (
                   </Col>
                 )}
               </Row>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <CustomFormItem
+                    label="Monto a Pagar por IDOPPRIL"
+                    required
+                    tooltip="Monto total que pagará IDOPPRIL por la sesión de terapia"
+                  >
+                    <InputNumber
+                      style={{ width: '100%' }}
+                      min={0}
+                      step={10}
+                      precision={2}
+                      prefix="RD$"
+                      placeholder="0.00"
+                      value={insuranceAmount}
+                      onChange={(value) => setInsuranceAmount(value || 0)}
+                    />
+                  </CustomFormItem>
+                </Col>
+              </Row>
+
+              <Card
+                size="small"
+                style={{
+                  backgroundColor: '#fff7e6',
+                  borderColor: '#ffd591',
+                  marginTop: 16,
+                  textAlign: 'center',
+                }}
+              >
+                <Space direction="vertical" size="small">
+                  <Text type="secondary">TOTAL A PAGAR</Text>
+                  <Text strong style={{ fontSize: 24, color: '#52c41a' }}>
+                    RD$ {insuranceAmount.toFixed(2)}
+                  </Text>
+                </Space>
+              </Card>
             </Card>
           )}
 
@@ -570,7 +681,11 @@ export const ConfirmAppointmentModal: React.FC<ConfirmAppointmentModalProps> = (
               htmlType="submit"
               loading={loading}
               icon={<CheckCircleOutlined />}
-              disabled={!hasPatient || (requiresAmounts && insuranceAmount <= 0)}
+              disabled={
+                !hasPatient ||
+                (paymentType === 'insurance' && isTherapy && insuranceAmount <= 0) ||
+                (isPrivateTherapy && patientAmount <= 0)
+              }
             >
               Confirmar Llegada
             </CustomButton>

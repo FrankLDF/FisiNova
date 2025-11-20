@@ -163,7 +163,6 @@ export const ConsultAppointments = () => {
   const handleOpenAuthorizeTherapyModal = async (appointment: Appointment) => {
     try {
       const record = await consultationService.getMedicalRecord(appointment.id!)
-      console.log(record?.data)
       setMedicalRecord(record?.data)
       setSelectedAppointment(appointment)
       setAuthorizeTherapyModalOpen(true)

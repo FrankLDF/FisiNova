@@ -13,14 +13,11 @@ class ReportService {
    */
   async preview(data: ReportFilters): Promise<ReportPreviewData> {
     try {
-      console.log('Sending preview request:', data)
 
       const response = await serverCore.post<ApiResponse<ReportPreviewData>>(
         '/reports/insurance/preview',
         data
       )
-
-      console.log('Preview response:', response.data)
 
       // El backend retorna: { data: {...}, error: null }
       // Verificar si viene en response.data.data o directamente en response.data
@@ -42,7 +39,6 @@ class ReportService {
    */
   async download(data: ReportFilters): Promise<void> {
     try {
-      console.log('Sending download request:', data)
 
       const response = await serverCore.post(
         '/reports/insurance/download',
@@ -52,7 +48,6 @@ class ReportService {
 
       // Verificar el tipo de contenido
       const contentType = response.headers['content-type']
-      console.log('Content type:', contentType)
 
       // Si es JSON, probablemente sea un error
       if (contentType?.includes('application/json')) {
@@ -84,7 +79,6 @@ class ReportService {
       link.remove()
       window.URL.revokeObjectURL(url)
 
-      console.log('Download completed:', filename)
     } catch (error: any) {
       console.error('Download error:', error)
       throw error
@@ -99,14 +93,11 @@ class ReportService {
     end_date?: string
   }): Promise<ReportStats> {
     try {
-      console.log('Fetching report stats:', params)
 
       const response = await serverCore.get<ApiResponse<ReportStats>>(
         '/reports/insurance/report-stats',
         { params }
       )
-
-      console.log('Stats response:', response.data)
 
       // Verificar estructura de respuesta
       if (response.data.data) {
@@ -157,8 +148,6 @@ class ReportService {
   async getInsurances(): Promise<any[]> {
     try {
       const response = await serverCore.get('/insurances')
-
-      console.log('Insurances response:', response.data)
 
       // Manejar diferentes estructuras de respuesta
       if (response.data.data) {

@@ -119,15 +119,7 @@ const InsuranceReportsDashboard: React.FC = () => {
         filters.insurance_id = selectedInsurance
       }
 
-      console.log('=== PREVIEW REQUEST ===')
-      console.log('Filtros enviados:', filters)
-
       const data = await reportService.preview(filters)
-
-      console.log('=== PREVIEW RESPONSE ===')
-      console.log('Datos recibidos:', data)
-      console.log('Servicios:', data.services?.length || 0)
-      console.log('Summary:', data.summary)
 
       // Validar estructura de datos
       if (!data || typeof data !== 'object') {

@@ -35,18 +35,14 @@ serverCore.interceptors.response.use(
     if (err.response?.status === 401) {
       const currentPath = window.location.pathname
 
-      console.log('🚨 Error 401 detectado - Cerrando sesión automáticamente')
-
       if (globalLogout) {
         globalLogout(false)
       } else {
         localStorage.removeItem('authToken')
         localStorage.removeItem('sessionUser')
-        console.log('⚠️ Fallback: localStorage limpiado directamente')
       }
 
       if (currentPath !== PATH_LOGIN) {
-        console.log(`🔄 Redirigiendo de ${currentPath} a ${PATH_LOGIN}`)
         window.location.replace(PATH_LOGIN)
         showNotification({
           title: 'INFO',

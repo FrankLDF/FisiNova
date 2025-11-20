@@ -244,7 +244,7 @@ export const UserForm = () => {
   const isViewMode = mode === 'view' && !isEditing
 
   const [existingUsernames, setExistingUsernames] = useState<string[]>([])
-  console.log({ existingUsernames })
+
   useEffect(() => {
     // Cargar todos los nombres de usuario existentes
     const fetchUsernames = async () => {

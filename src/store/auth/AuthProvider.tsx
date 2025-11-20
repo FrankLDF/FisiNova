@@ -66,7 +66,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } })
 
-      console.log('✅ Sesión iniciada correctamente:', user.name)
     } catch (error) {
       console.error('❌ Error al guardar sesión:', error)
       showNotification({
@@ -90,7 +89,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         })
       }
 
-      console.log('✅ Sesión cerrada correctamente')
     } catch (error) {
       console.error('❌ Error al cerrar sesión:', error)
       dispatch({ type: 'LOGOUT' })
@@ -101,7 +99,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       localStorage.setItem('sessionUser', JSON.stringify(user))
       dispatch({ type: 'SET_USER', payload: user })
-      console.log('✅ Usuario actualizado:', user.name)
     } catch (error) {
       console.error('❌ Error al actualizar usuario:', error)
       showNotification({
@@ -113,7 +110,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const restoreSession = () => {
     try {
-      console.log('🔄 Restaurando sesión...')
 
       const token = localStorage.getItem('authToken')
       const userStored = localStorage.getItem('sessionUser')
@@ -121,9 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (token && userStored) {
         const user = JSON.parse(userStored)
         dispatch({ type: 'RESTORE_SESSION', payload: { user, token } })
-        console.log('✅ Sesión restaurada:', user.name)
       } else {
-        console.log('ℹ️ No hay sesión para restaurar')
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     } catch (error) {
@@ -147,27 +141,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
-    console.log('🚀 Inicializando AuthProvider...')
 
     setGlobalLogout(logout)
 
     restoreSession()
 
     return () => {
-      console.log('🛑 Desmontando AuthProvider...')
     }
   }, [])
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Estado de autenticación:', {
-        isAuthenticated: state.isAuthenticated,
-        isLoading: state.isLoading,
-        userName: state.user?.name,
-        userRoles: state.user?.rols,
-      })
-    }
-  }, [state.isAuthenticated, state.isLoading, state.user])
 
   const contextValue: AuthContextValue = {
     ...state,

@@ -266,7 +266,6 @@ export const ConsultPatients = () => {
   const tableData = Array.isArray(patientsData?.data?.data)
     ? patientsData.data?.data
     : []
-  console.log({ tableData })
 
   return (
     <div style={{ padding: '0 16px' }}>
